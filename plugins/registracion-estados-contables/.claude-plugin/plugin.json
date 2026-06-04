@@ -1,0 +1,8 @@
+{
+  "name": "registracion-estados-contables",
+  "version": "0.1.0",
+  "description": "Plugin contable de registración y estados contables de Argentina para Responsable Inscripto (NU Desarrollos). Asiste con asientos y partida doble, libros contables obligatorios (Diario, Inventarios y Balances) según el CCyC (Ley 26.994) y la Ley General de Sociedades (Ley 19.550), y estados contables según las Resoluciones Técnicas de la FACPCE (RT 6 ajuste por inflación, RT 8 presentación, RT 9 rubros, RT 16 marco conceptual, RT 17 medición, RT 41/42 entes pequeños/medianos). Distingue el marco conceptual estable (partida doble, cómo se registra un asiento) de la cita normativa concreta (qué RT lo regula y su vigencia), que se verifica. Las RT de la FACPCE no tienen connector: su cita se verifica manualmente contra facpce.org.ar y se marca [verify]. Toda salida es un borrador para revisión de un contador matriculado.",
+  "author": {
+    "name": "Grupo NU"
+  }
+}
