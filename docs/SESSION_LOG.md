@@ -2,6 +2,48 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-04 — Fase 2: Áreas (plugins del estudio)
+
+**Estado:** completada (pendiente checkpoint de Diego antes de Fase 3).
+
+### Plugins construidos (5), todos con commit propio
+| Plugin | Rol | Skills | Commit |
+|---|---|---|---|
+| `impuestos-liquidaciones` | **referencia** (validado por Diego) — IVA, Ganancias, IIBB SF, monotributo, Bs. Personales, retenciones | 4 | 0a4d753 |
+| `sueldos` | nómina, cargas sociales, F.931, ART | 4 | e4bda44 |
+| `registracion-estados-contables` | asientos, libros, balance, RT FACPCE | 4 | cfb6db8 |
+| `societario-cumplimiento` | vencimientos ARCA, regímenes de info, IGJ/RPJEC | 4 | cf3a5d4 |
+| `estudio-contable` | **puerta única** (triage + derivación, sin connectors) | 2 | 0fc793d |
+
+### Decisiones validadas por Diego
+- Molde aprobado: playbook **sin números hardcodeados** (todo monto/alícuota/fecha se verifica por
+  connector o `[verify]`), mapa de riesgo por norma, gates de consecuencias, encabezado conservador.
+- **Mismos 4 skills por área** (consistencia): cold-start-interview + consulta-<area> +
+  buscar-normativa-<area> + analizar-norma-<area>. La puerta `estudio-contable` tiene 2 (recepcion + cold-start global).
+
+### Construcción
+- Plugin de referencia `impuestos-liquidaciones` hecho primero y validado → luego las otras 3 áreas
+  en paralelo (3 agentes, carpetas independientes) → por último `estudio-contable`.
+- Dominio fiscal verificado de primera mano vía connectors (InfoLEG id 42701 = Dec. 280 IVA t.o.).
+  El mapa de riesgo del agente investigador se usó solo para las trampas conceptuales (ARCA=ex-AFIP,
+  monotributo semestral, retenciones por RG, proyecto vs vigente, Ley 27.742 laboral ≠ 27.743 fiscal,
+  IGJ CABA ≠ RPJEC Santa Fe), NO para números.
+
+### Gate Fase 2
+- ✅ **5 plugins** declarados en `marketplace.json`, sin huérfanos; cada uno con plugin.json + playbook + skills.
+- ✅ **18 skills user-invocable** en total.
+- ✅ **Regla de oro de CLAUDE.md respetada:** 3 de desarrollo (`# CONTEXTO DE DESARROLLO`) + 5 de
+  producto (`# PLAYBOOK CONTABLE`); ningún playbook contaminado con convenciones de código.
+- ✅ Verificación de dominio de primera mano: ningún playbook hardcodea alícuotas/montos/fechas;
+  distinciones críticas presentes (IGJ/RPJEC, 27.742/27.743, marco conceptual/cita RT).
+- ⏸️ Checkpoint con Diego antes de Fase 3. (Validación final de cifras/normas = Diego / contador matriculado.)
+
+### Próximo (Fase 3)
+- Managed-agent `vencimientos-arca` + recursos estáticos con fecha de corte (monotributo, calendario
+  ARCA, mapa RT FACPCE), todos marcados `[verify]`.
+
+---
+
 ## 2026-06-04 — Fase 1: Núcleo de fuentes (connectors)
 
 **Estado:** completada (pendiente checkpoint de Diego antes de Fase 2).
