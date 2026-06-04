@@ -1,0 +1,8 @@
+{
+  "name": "estudio-contable",
+  "version": "0.1.0",
+  "description": "Puerta única del estudio contable de NU Desarrollos: recibe una consulta contable/impositiva en lenguaje natural, la clasifica por área (impuestos, sueldos, registración, societario), y la deriva al plugin especialista correcto (descomponiendo consultas que cruzan varias áreas). Captura el perfil global del estudio una sola vez. No produce contenido fiscal sustantivo: delega. Toda salida es un borrador para revisión de un contador matriculado.",
+  "author": {
+    "name": "Grupo NU"
+  }
+}

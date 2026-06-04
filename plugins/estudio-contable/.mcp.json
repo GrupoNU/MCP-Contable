@@ -1,0 +1,4 @@
+{
+  "$comment": "El plugin estudio-contable es la puerta única (recepción): NO usa connectors propios. Clasifica y deriva a las áreas; los connectors los usan los plugins de área. Por eso mcpServers va vacío.",
+  "mcpServers": {}
+}
