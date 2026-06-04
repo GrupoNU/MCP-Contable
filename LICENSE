@@ -1,0 +1,28 @@
+Copyright (c) 2026 Grupo NU. Todos los derechos reservados.
+
+SOFTWARE PROPIETARIO — TODOS LOS DERECHOS RESERVADOS
+
+Este software y su código fuente, documentación y archivos asociados
+(el "Software") son propiedad exclusiva de Grupo NU.
+
+El Software es confidencial y propietario. No se otorga ninguna licencia,
+expresa o implícita, para usar, copiar, modificar, fusionar, publicar,
+distribuir, sublicenciar o vender copias del Software, salvo autorización
+previa y por escrito de Grupo NU.
+
+Queda prohibida la reproducción total o parcial del Software por cualquier
+medio sin el consentimiento expreso de Grupo NU.
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA
+O IMPLÍCITA, INCLUYENDO PERO NO LIMITÁNDOSE A LAS GARANTÍAS DE
+COMERCIABILIDAD, IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN.
+
+Este Software incorpora patrones de diseño y estructura inspirados en el
+proyecto de referencia público "Claude for Legal" de Anthropic
+(github.com/anthropics/claude-for-legal, licencia Apache 2.0). El contenido
+contable/impositivo, los connectors y la adaptación a la normativa fiscal
+argentina son obra original de Grupo NU.
+
+AVISO LEGAL: Este Software es una herramienta de asistencia. Toda salida
+constituye un borrador sujeto a revisión por un contador público
+matriculado. No constituye asesoramiento contable, impositivo ni profesional.

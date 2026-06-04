@@ -1,0 +1,11 @@
+# Normalizar line endings: LF en el repo, auto en working copy.
+* text=auto eol=lf
+
+# Binarios (no tocar)
+*.pdf binary
+*.png binary
+*.jpg binary
+*.zip binary
+*.crt binary
+*.p12 binary
+*.pfx binary

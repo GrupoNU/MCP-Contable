@@ -1,0 +1,55 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mcp-contable",
+  "description": "Estudio contable de agentes IA para la gestión contable/impositiva argentina (NU Desarrollos) — connectors a fuentes oficiales (ARCA vía afip-ws, datos.gob.ar, datos.jus.gob.ar, InfoLEG, Boletín Oficial, Santa Fe) y plugins por especialidad (impuestos/liquidaciones, sueldos, registración/estados contables, societario/cumplimiento), con una puerta única de recepción que deriva al área correcta. Nunca afirma montos/alícuotas/vencimientos sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
+  "owner": {
+    "name": "Grupo NU"
+  },
+  "plugins": [
+    {
+      "name": "estudio-contable",
+      "displayName": "Estudio Contable (recepción)",
+      "source": "./plugins/estudio-contable",
+      "description": "Puerta única del estudio: clasifica la consulta contable/impositiva y la deriva al área especialista correcta (impuestos, sueldos, registración, societario), descomponiendo consultas que cruzan varias áreas. Aplica los gates de grounding y el encabezado conservador. No produce contenido fiscal sustantivo: delega. Toda salida es un borrador para revisión de un contador matriculado.",
+      "author": {
+        "name": "Grupo NU"
+      }
+    },
+    {
+      "name": "impuestos-liquidaciones",
+      "displayName": "Impuestos y Liquidaciones",
+      "source": "./plugins/impuestos-liquidaciones",
+      "description": "Impuestos nacionales (IVA, Ganancias) e Ingresos Brutos (Santa Fe), monotributo, retenciones y percepciones, para Responsable Inscripto. Nunca afirma montos/alícuotas/topes/categorías sin fuente verificada (ARCA vía afip-ws, CKAN, InfoLEG). Toda salida es un borrador para revisión de un contador matriculado.",
+      "author": {
+        "name": "Grupo NU"
+      }
+    },
+    {
+      "name": "sueldos",
+      "displayName": "Sueldos y Cargas Sociales",
+      "source": "./plugins/sueldos",
+      "description": "Liquidación de nómina, cargas sociales, F.931, ART y conceptos remunerativos/no remunerativos. Nunca afirma topes, mínimos ni alícuotas de seguridad social sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
+      "author": {
+        "name": "Grupo NU"
+      }
+    },
+    {
+      "name": "registracion-estados-contables",
+      "displayName": "Registración y Estados Contables",
+      "source": "./plugins/registracion-estados-contables",
+      "description": "Asientos, libros, balance y estados contables según las normas técnicas (RT) de la FACPCE. Distingue el marco conceptual de los valores concretos (que se verifican o se marcan [verify]). Toda salida es un borrador para revisión de un contador matriculado.",
+      "author": {
+        "name": "Grupo NU"
+      }
+    },
+    {
+      "name": "societario-cumplimiento",
+      "displayName": "Societario y Cumplimiento",
+      "source": "./plugins/societario-cumplimiento",
+      "description": "Vencimientos ARCA, regímenes de información y presentaciones societarias (IGJ para CABA / RPJEC para Santa Fe). No extrapola trámites entre jurisdicciones ni afirma vencimientos sin fuente con fecha. Toda salida es un borrador para revisión de un contador matriculado.",
+      "author": {
+        "name": "Grupo NU"
+      }
+    }
+  ]
+}

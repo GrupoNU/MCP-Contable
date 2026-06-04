@@ -1,0 +1,38 @@
+[project]
+name = "mcp-contable"
+version = "0.1.0"
+description = "FastMCP servers connecting Claude to Argentine accounting/tax data sources (stdio transport)."
+readme = "CLAUDE.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [{ name = "Grupo NU" }]
+dependencies = [
+    "fastmcp",
+    "httpx",
+    "selectolax",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "respx",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# src layout: the importable package lives at src/mcp_contable.
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_contable"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# asyncio_mode = "auto" lets us write `async def test_*` without decorating each one.
+asyncio_mode = "auto"
+markers = [
+    # Tests that hit REAL upstream APIs. Excluded from CI: run with `-m live`,
+    # exclude with `-m "not live"`.
+    "live: tests that reach real external accounting/tax data APIs (excluded from CI)",
+]

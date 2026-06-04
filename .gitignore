@@ -1,0 +1,70 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+*.egg
+
+# ---- Virtual environments (uv) ----
+.venv/
+venv/
+env/
+.python-version
+
+# ---- uv ----
+# El lockfile SÍ se versiona (uv.lock); el cache no.
+.uv-cache/
+
+# ---- Testing / coverage ----
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Secrets / credenciales (NUNCA versionar) ----
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials.json
+
+# ---- Logs de runtime de los plugins (metadata, pero no se versiona) ----
+plugins/**/logs/*
+!plugins/**/logs/.gitkeep
+*.log
+
+# ---- Datos contables / confidencial de NU (NUNCA versionar) ----
+# Carpetas de trabajo con documentación contable real si llegaran a quedar en el repo
+casos/
+papeles-de-trabajo/
+ddjj/
+facturas/
+*.confidencial
+
+# ---- Caches locales de los connectors ----
+connectors/**/.cache/
+*.cache
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.swp
+
+# ---- Claude Code (config local/personal, no se versiona) ----
+.claude/settings.local.json

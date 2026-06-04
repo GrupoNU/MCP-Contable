@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv:*)",
+      "Bash(python:*)",
+      "Bash(pytest:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "WebFetch(domain:datos.gob.ar)",
+      "WebFetch(domain:datos.jus.gob.ar)",
+      "WebFetch(domain:servicios.infoleg.gob.ar)",
+      "WebFetch(domain:www.infoleg.gob.ar)",
+      "WebFetch(domain:www.boletinoficial.gob.ar)",
+      "WebFetch(domain:www.afip.gob.ar)",
+      "WebFetch(domain:www.arca.gob.ar)",
+      "WebFetch(domain:www.facpce.org.ar)",
+      "WebFetch(domain:www.santafe.gob.ar)",
+      "WebFetch(domain:www.santafe.gov.ar)",
+      "WebFetch(domain:datos.santafe.gob.ar)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(rm -rf:*)",
+      "Read(./.env)",
+      "Read(./connectors/.env)",
+      "Read(./secrets/**)",
+      "Read(**/*.key)",
+      "Read(**/*.crt)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)"
+    ]
+  }
+}
