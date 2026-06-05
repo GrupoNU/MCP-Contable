@@ -13,14 +13,17 @@
 
 ```bash
 git clone https://github.com/GrupoNU/MCP-Contable.git
-cd MCP-Contable/connectors
+cd MCP-Contable/plugin/connectors
 uv sync                       # crea .venv e instala deps (incl. dev)
 ```
+
+> Nota: el plugin vive en la subcarpeta `plugin/` (estructura requerida para instalar en Cowork).
+> Los connectors están en `plugin/connectors/`.
 
 ## Correr los tests
 
 ```bash
-cd connectors
+cd plugin/connectors
 uv run pytest -m "not live"   # tests sin pegar a APIs reales (lo normal / CI)
 uv run pytest                 # incluye tests @live (pegan a fuentes reales)
 uv run pytest -v              # verboso
@@ -56,5 +59,5 @@ uv run python -m mcp_contable.ckan_nacional.server   # smoke test stdio
 
 ## Reglas del equipo
 
-Ver [CLAUDE.md](CLAUDE.md) (raíz), [connectors/CLAUDE.md](connectors/CLAUDE.md) y
-[plugins/CLAUDE.md](plugins/CLAUDE.md).
+Ver [CLAUDE.md](CLAUDE.md) (raíz), [plugin/connectors/CLAUDE.md](plugin/connectors/CLAUDE.md) y
+[plugin/docs/DEVELOPING-SKILLS.md](plugin/docs/DEVELOPING-SKILLS.md).

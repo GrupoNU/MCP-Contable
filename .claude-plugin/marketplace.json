@@ -9,7 +9,7 @@
     {
       "name": "mcp-contable",
       "displayName": "MCP-Contable — Estudio Contable",
-      "source": "./",
+      "source": "./plugin",
       "description": "Estudio contable completo: recepción que clasifica y deriva, más las áreas de impuestos/liquidaciones, sueldos, registración/estados contables y societario/cumplimiento. Connectors a ARCA (vía afip-ws), CKAN, InfoLEG, Boletín y Santa Fe. Nunca afirma montos/alícuotas/vencimientos sin fuente verificada.",
       "author": {
         "name": "Grupo NU"
