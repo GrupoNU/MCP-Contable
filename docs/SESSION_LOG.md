@@ -2,6 +2,36 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-04 — Reestructura: 5 plugins → 1 plugin único (para instalar en Cowork)
+
+**Por qué:** al preparar la instalación en Cowork se descubrieron dos límites reales (verificados en
+la doc oficial de Claude Code):
+1. **Cowork instala marketplaces solo desde un repo Git (GitHub), no desde carpeta local.**
+2. **Un plugin instalado no puede referenciar archivos fuera de su carpeta** (path traversal: rutas
+   `../connectors` "will not work after installation because those external files are not copied to
+   the cache"). Con `connectors/` compartido en la raíz, los 5 plugins separados no lo resolvían
+   post-install. Los **symlinks no son viables en Windows** (git los materializa como carpetas →
+   probado y descartado).
+
+**Solución:** consolidar todo en **un solo plugin `mcp-contable`** (el repo raíz = el plugin).
+- `marketplace.json`: 1 plugin, `source: "./"`. `plugin.json` en `.claude-plugin/`.
+- `.mcp.json` en la raíz con **`${CLAUDE_PLUGIN_ROOT}/connectors`** para los 7 servers (la variable la
+  expande Cowork a la ruta de instalación real — verificado en doc + smoke test).
+- **18 skills** consolidados en `skills/`. Los cold-start de área se renombraron a `perfil-<area>`;
+  el global queda `cold-start-interview`. Cada playbook de área viaja como
+  `skills/consulta-<area>/playbook.md` (lo lee su skill).
+- Referencias internas reescritas a `/mcp-contable:<skill>` y nuevas rutas de perfil. `plugins/`
+  eliminada; `plugins/CLAUDE.md` (desarrollo) preservado como `docs/DEVELOPING-SKILLS.md`.
+- INSTALL.md/README reescritos para el flujo **Cowork desde GitHub** (Customize → Plugins → Add from
+  a repository).
+- Hecho en rama `single-plugin`, validado (`claude plugin validate` passed; 18 skills OK; connector
+  arranca con `${CLAUDE_PLUGIN_ROOT}`; **127 tests verdes**), mergeado a `main`.
+
+**Requisito de entorno verificado en esta PC:** uv 0.9.11 + Python 3.12.9 en PATH (`C:\Users\grupo\
+.local\bin`), `.venv` con deps. Cowork lanza `uv` por nombre → lo encuentra.
+
+---
+
 ## 2026-06-04 — Post-cierre: connector `arca` operativo (certificado AFIP probado)
 
 **Tarea externa (infra VPS), completada con aprobación de Diego.**
