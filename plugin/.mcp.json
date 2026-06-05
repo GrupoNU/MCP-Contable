@@ -1,11 +1,13 @@
 {
-  "$comment": "Connectors MCP del estudio contable. Rutas con ${CLAUDE_PLUGIN_ROOT} (la raíz del plugin instalado, que es la subcarpeta plugin/ del repo), que Claude Code/Cowork expande a la ubicación real tras instalar. El código de los connectors vive en connectors/ dentro del plugin. Requiere 'uv' y Python 3.12 en el PATH; uv crea/usa el venv automáticamente. El connector arca lleva AFIP_WS_BASE_URL acá (la IP Tailscale del afip-ws de NU); requiere VPN Tailscale activa.",
+  "$comment": "Connectors MCP del estudio. uv crea el venv en ${CLAUDE_PLUGIN_DATA} (persistente) via UV_PROJECT_ENVIRONMENT/UV_CACHE_DIR, NO en la carpeta cache efimera de Cowork (donde el venv se corrompe en Windows). --project apunta al connectors/ con el pyproject. Requiere uv + Python 3.12 en PATH. Credenciales (API keys) van por variables de entorno del sistema.",
   "mcpServers": {
     "arca": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -13,7 +15,9 @@
         "mcp_contable.arca.server"
       ],
       "env": {
-        "AFIP_WS_BASE_URL": "http://100.88.25.41:8001"
+        "AFIP_WS_BASE_URL": "http://100.88.25.41:8001",
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
       }
     },
     "ckan-nacional": {
@@ -21,78 +25,116 @@
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.ckan_nacional.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "ckan-juridico": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.ckan_juridico.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "infoleg": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.infoleg.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "boletin-nacional": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.boletin_nacional.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "santafe-sin": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.santafe_sin.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "santafe-fiscal": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
         "-m",
         "mcp_contable.santafe_fiscal.server"
-      ]
+      ],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+      }
     },
     "odoo": {
       "type": "stdio",
       "command": "uv",
       "args": [
         "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
         "--directory",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -101,7 +143,9 @@
       ],
       "env": {
         "ODOO_URL": "https://odoo.gruponu.com",
-        "ODOO_DB": "gruponu_production"
+        "ODOO_DB": "gruponu_production",
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
       }
     }
   }
