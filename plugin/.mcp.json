@@ -87,6 +87,22 @@
         "-m",
         "mcp_contable.santafe_fiscal.server"
       ]
+    },
+    "odoo": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.odoo.server"
+      ],
+      "env": {
+        "ODOO_URL": "https://odoo.gruponu.com",
+        "ODOO_DB": "gruponu_production"
+      }
     }
   }
 }
