@@ -41,7 +41,16 @@ como vigente. Por eso:
 
 ## Estado
 
-🚧 En construcción. Ver `docs/SESSION_LOG.md` para el avance por fases.
+✅ **Fases 0-4 completadas** (2026-06-04). Repo funcional: 7 connectors (127 tests verdes),
+5 plugins (18 skills), 3 recursos estáticos y el managed-agent `vencimientos-arca`.
+
+**Pendientes de coordinación (no bloquean el repo):**
+- Exponer el microservicio `afip-ws` del VPS a la red Tailscale para activar el connector `arca`
+  en vivo (cambio de infra en VPS_atmosfera).
+- Validación de cifras/normas por un contador matriculado (gate de dominio).
+- Prueba de instalación del marketplace en Claude Cowork.
+
+Ver `docs/SESSION_LOG.md` para el detalle por fases.
 
 ## Aviso
 

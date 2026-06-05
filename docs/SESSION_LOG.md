@@ -2,6 +2,41 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-04 — Fase 4: Cierre
+
+**Estado:** completada. **Fases 0-4 del plan terminadas.**
+
+### Verificación end-to-end
+- ✅ **Suite global: 127 tests verdes** (`pytest -m "not live"`); los 7 servers FastMCP importan OK.
+- ✅ **Inventario estructural coherente:** marketplace con 5 plugins (18 skills user-invocable),
+  7 connectors (+ 3 test files de common/ = 10 en total), 3 recursos estáticos + README,
+  1 managed-agent, 5 docs.
+- ✅ **Security pass final (zero-retention):** `import httpx` solo en `common/http.py`; ningún
+  `.env`/certificado/clave versionado (solo `.env.example`); `settings.local.json` gitignored;
+  ningún CUIT/monto real de NU (solo los ficticios de test); `http.py` conserva sus marcadores
+  zero-retention.
+- ✅ **Regla de oro de CLAUDE.md:** 3 de desarrollo + 5 de producto, sin contaminación cruzada.
+
+### Resumen del proyecto (Fases 0-4)
+| Fase | Entregable | Commits clave |
+|---|---|---|
+| 0 | Fundaciones (common/ + docs + marketplace) | b10a77b |
+| 1 | 7 connectors (Tier A/B), 127 tests | d2f7afa…72651bd |
+| 2 | 5 plugins del estudio (18 skills) | 0a4d753…0fc793d |
+| 3 | recursos estáticos + managed-agent vencimientos-arca | d554092, ba17633 |
+| 4 | cierre (verificación end-to-end) | (este) |
+
+### Pendientes de coordinación (NO bloquean el repo; tareas externas)
+1. **Exponer `afip-ws` a Tailscale** (cambio en VPS_atmosfera: agregar binding `100.88.25.41:8001`
+   al docker-compose del afip-ws, como Postgres) → activa el connector `arca` en vivo + su live test.
+2. **Validación de cifras/normas por un contador matriculado** (gate de dominio del kickoff).
+3. **Prueba de instalación del marketplace en Claude Cowork** (validar rutas `.mcp.json` reales).
+
+### NO push
+- Todo commiteado en `main`, **sin push** — esperando confirmación de Diego.
+
+---
+
 ## 2026-06-04 — Fase 3: Managed-agent vencimientos ARCA + recursos estáticos
 
 **Estado:** completada (pendiente checkpoint de Diego antes de Fase 4).
