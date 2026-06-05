@@ -3,13 +3,19 @@
   "name": "mcp-contable",
   "description": "Estudio contable de agentes IA para la gestión contable/impositiva argentina (NU Desarrollos). Un plugin único con recepción + 4 áreas especialistas (impuestos/liquidaciones, sueldos, registración/estados contables, societario/cumplimiento) y connectors a fuentes oficiales. Toda salida es un borrador para revisión de un contador matriculado.",
   "owner": {
-    "name": "Grupo NU"
+    "name": "Grupo NU",
+    "email": "dnannini@gmail.com"
   },
   "plugins": [
     {
       "name": "mcp-contable",
       "displayName": "MCP-Contable — Estudio Contable",
-      "source": "./plugin",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/GrupoNU/MCP-Contable.git",
+        "path": "plugin",
+        "ref": "main"
+      },
       "description": "Estudio contable completo: recepción que clasifica y deriva, más las áreas de impuestos/liquidaciones, sueldos, registración/estados contables y societario/cumplimiento. Connectors a ARCA (vía afip-ws), CKAN, InfoLEG, Boletín y Santa Fe. Nunca afirma montos/alícuotas/vencimientos sin fuente verificada.",
       "author": {
         "name": "Grupo NU"
