@@ -2,6 +2,36 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-04 — Fase 3: Managed-agent vencimientos ARCA + recursos estáticos
+
+**Estado:** completada (pendiente checkpoint de Diego antes de Fase 4).
+
+### Recursos estáticos (commit d554092)
+- `recursos/monotributo.md`, `calendario-vencimientos-arca.md`, `mapa-rt-facpce.md` + README.
+- **Plantillas con fecha de corte, NO valores inventados:** las cifras quedan en `[verify]` hasta
+  que alguien las complete desde la fuente oficial con su fecha. Vencida la fecha de corte → `[verify]`.
+- Honestidad por diseño: nunca se completan montos/fechas "de memoria".
+
+### Managed-agent `vencimientos-arca` (commit ba17633)
+- Monitor de vencimientos ARCA por terminación de CUIT. Plugin de área: `societario-cumplimiento`.
+- **Arquitectura de 3 niveles:** reader (sin Write, connectors de lectura) → calculator (cómputo
+  puro) → alerta-writer (único con Write). Orquestador solo enruta.
+- **Grounding anti-desactualización:** el agente NUNCA afirma una fecha sin un recurso fechado
+  vigente o una RG recuperada; si no hay, reporta `[verify]`. Pie de verificación obligatorio.
+- Cookbook de Claude API — NO corre en Cowork hoy; no reemplaza al contador.
+
+### Gate Fase 3
+- ✅ Los 3 recursos tienen fecha de corte + `[verify]`.
+- ✅ El agente no inventa fechas (grounding anti-desactualización en los 4 manifests).
+- ✅ Solo `alerta-writer` tiene `write` (isolación de 3 niveles correcta).
+- ✅ YAML/JSON válidos.
+- ⏸️ Checkpoint con Diego antes de Fase 4.
+
+### Próximo (Fase 4 — cierre)
+- Verificación end-to-end, suite global verde, SESSION_LOG final. NO push hasta confirmación de Diego.
+
+---
+
 ## 2026-06-04 — Fase 2: Áreas (plugins del estudio)
 
 **Estado:** completada (pendiente checkpoint de Diego antes de Fase 3).
