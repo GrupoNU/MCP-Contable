@@ -39,10 +39,19 @@ como vigente. Por eso:
 - **Nunca** se afirma una cifra/alícuota/categoría/vencimiento sin `retrieved_at` reciente.
 - **Toda salida es un borrador para revisión de un contador matriculado.**
 
+## Instalación
+
+Para instalar el estudio en **Claude Cowork / Claude Code**, ver **[INSTALL.md](INSTALL.md)**
+(guía paso a paso para el usuario). Para desarrollo (tests, etc.), ver [QUICKSTART.md](QUICKSTART.md).
+
+Resumen: `uv sync` en `connectors/` → `/plugin marketplace add D:\git\MCP-Contable` →
+`/plugin install <plugin>@mcp-contable` → `/estudio-contable:cold-start-interview`.
+
 ## Estado
 
-✅ **Fases 0-4 completadas** (2026-06-04). Repo funcional: 7 connectors (127 tests verdes),
-5 plugins (18 skills), 3 recursos estáticos y el managed-agent `vencimientos-arca`.
+✅ **Fases 0-4 completadas + connector `arca` operativo** (2026-06-04). Repo funcional: 7 connectors
+(127 tests verdes), 5 plugins (18 skills), 3 recursos estáticos y el managed-agent `vencimientos-arca`.
+Listo para instalar en Cowork (los 5 plugins validan con `claude plugin validate`).
 
 **Pendientes de coordinación (no bloquean el repo):**
 - Exponer el microservicio `afip-ws` del VPS a la red Tailscale para activar el connector `arca`
