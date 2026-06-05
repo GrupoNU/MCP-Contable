@@ -1,0 +1,89 @@
+{
+  "$comment": "Connectors MCP del estudio contable. Rutas con ${CLAUDE_PLUGIN_ROOT} (la raíz del plugin instalado), que Claude Code/Cowork expande a la ubicación real tras instalar desde el repo. El código de los connectors vive en connectors/ dentro de este mismo plugin (la raíz del repo = la raíz del plugin). Requiere 'uv' y Python 3.12 en el PATH de la máquina; uv crea/usa el venv del proyecto automáticamente.",
+  "mcpServers": {
+    "arca": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.arca.server"
+      ]
+    },
+    "ckan-nacional": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.ckan_nacional.server"
+      ]
+    },
+    "ckan-juridico": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.ckan_juridico.server"
+      ]
+    },
+    "infoleg": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.infoleg.server"
+      ]
+    },
+    "boletin-nacional": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.boletin_nacional.server"
+      ]
+    },
+    "santafe-sin": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.santafe_sin.server"
+      ]
+    },
+    "santafe-fiscal": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/connectors",
+        "python",
+        "-m",
+        "mcp_contable.santafe_fiscal.server"
+      ]
+    }
+  }
+}

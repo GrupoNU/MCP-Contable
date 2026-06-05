@@ -1,153 +1,133 @@
-# Instalación de MCP-Contable en Claude Cowork / Claude Code
+# Instalación de MCP-Contable en Claude Cowork
 
-> Guía paso a paso para instalar el estudio contable en **Claude Cowork** (o Claude Code) en la PC
-> de NU Desarrollos. Para la guía de desarrollo (tests, etc.) ver `QUICKSTART.md`.
+> Guía paso a paso para instalar el estudio contable en **Claude Cowork** en la PC de NU
+> Desarrollos. Para desarrollo (tests, etc.) ver `QUICKSTART.md`.
 
 ---
 
 ## 0. Qué vas a instalar
 
-Un **marketplace local** con 5 plugins (1 puerta de recepción + 4 áreas especialistas) que corren
-sobre la suscripción Claude del usuario (costo IA $0) y acceden a las carpetas locales de NU + las
-fuentes oficiales vía connectors MCP.
+**Un solo plugin** llamado `mcp-contable` que trae el estudio contable completo: una **recepción**
+que clasifica tu consulta y la deriva al área correcta, más las 4 áreas especialistas (impuestos/
+liquidaciones, sueldos, registración/estados contables, societario/cumplimiento) y los 7 connectors
+a fuentes oficiales. Corre sobre tu suscripción Claude (costo IA $0) y accede a las carpetas locales
+de NU + las fuentes oficiales.
+
+> **Importante:** Cowork instala plugins **desde un repositorio Git (GitHub)**, no desde una carpeta
+> local. Por eso el repo tiene que estar en GitHub (puede ser privado).
 
 ---
 
-## 1. Requisitos (una sola vez)
+## 1. Requisitos (una sola vez en esta PC)
 
-1. **Claude Code / Cowork** instalado y logueado.
-2. **Python 3.12** y **uv** (gestor de paquetes). Verificá:
+1. **Claude Cowork** instalado y logueado.
+2. **Python 3.12** y **uv** (gestor de paquetes), accesibles en el PATH:
    ```powershell
    uv --version
    python --version
    ```
-   uv se instala desde https://docs.astral.sh/uv/ si falta.
-3. **Dependencias de los connectors instaladas:**
-   ```powershell
-   cd D:\git\MCP-Contable\connectors
-   uv sync
+   uv se instala desde https://docs.astral.sh/uv/ si falta. Cowork lanza los connectors con `uv`,
+   así que tiene que estar en el PATH (en esta PC ya lo está: `C:\Users\grupo\.local\bin`).
+3. **Para el connector `arca` (constancia/padrón AFIP):** estar conectado a la **VPN Tailscale de
+   GrupoNU** — es la **misma VPN que ya usás para el MCP `supabase-db`**. Si ese te funciona, `arca`
+   también. Los otros 6 connectors usan fuentes públicas y no requieren VPN.
+
+---
+
+## 2. Agregar el marketplace en Cowork
+
+1. En Cowork, abrí la barra lateral izquierda → **Customize**.
+2. Andá a la pestaña **Plugins**.
+3. En **Personal plugins**, hacé clic en **"+"** → **Add marketplace** → **Add from a repository**.
+4. Pegá la URL del repo:
    ```
-   Esto crea el entorno `.venv` y deja los 7 connectors listos para correr.
-4. **Solo para el connector `arca` (constancia/padrón AFIP):** la PC donde corre Cowork debe estar
-   conectada a la **VPN Tailscale de GrupoNU**. El connector NO habla con AFIP directo: llega al
-   microservicio `afip-ws` del VPS (donde vive el certificado de NU) por la red Tailscale
-   (`100.88.25.41`). **Es la misma VPN que ya usás para el MCP `supabase-db`** — si ese ya te
-   funciona, `arca` también. Los otros 6 connectors usan fuentes públicas y **no requieren VPN**.
-   Si Tailscale se desconecta, `arca` avisa con un error claro y los demás siguen andando.
+   https://github.com/GrupoNU/MCP-Contable
+   ```
+   (Si el repo es privado, Cowork te pedirá autorizar el acceso a GitHub.)
 
 ---
 
-## 2. Agregar el marketplace
+## 3. Instalar el plugin
 
-En Claude Code / Cowork, agregá el marketplace apuntando a la **carpeta raíz** del repo (la que
-contiene `.claude-plugin/marketplace.json`):
-
-```
-/plugin marketplace add D:\git\MCP-Contable
-```
-
-Verificá que se agregó:
-
-```
-/plugin marketplace list
-```
-
-Debería aparecer el marketplace **`mcp-contable`** con sus 5 plugins.
-
----
-
-## 3. Instalar los plugins
-
-Instalá los que necesites (el nombre del marketplace es `mcp-contable`). Se recomienda instalar la
-**puerta de recepción primero** y al menos un área:
-
-```
-/plugin install estudio-contable@mcp-contable
-/plugin install impuestos-liquidaciones@mcp-contable
-/plugin install sueldos@mcp-contable
-/plugin install registracion-estados-contables@mcp-contable
-/plugin install societario-cumplimiento@mcp-contable
-```
-
-> También podés usar el menú interactivo escribiendo `/plugin` y navegando a **Discover**.
-
-Verificá que no haya errores de carga: abrí `/plugin` y mirá la pestaña **Errors** (debería estar
-vacía). Si un connector falla, casi siempre es la ruta del `.mcp.json` (ver §6).
+Una vez agregado el marketplace `mcp-contable`, vas a ver **un plugin: `mcp-contable`**. Hacé clic en
+**Install** (scope **user** / personal por defecto, para tenerlo disponible en cualquier sesión).
 
 ---
 
 ## 4. Configurar el connector `arca` (AFIP)
 
-El connector `arca` necesita saber dónde está el microservicio `afip-ws`. Creá el archivo
+El connector `arca` necesita la URL del microservicio `afip-ws`. En la carpeta del repo, creá
 `connectors\.env` (NO se versiona) con:
 
 ```
 AFIP_WS_BASE_URL=http://100.88.25.41:8001
 ```
 
-(Esa es la IP Tailscale del VPS. Requiere VPN Tailscale activa.) Si no configurás esto, los otros
-connectors funcionan igual; solo `arca` devolverá un error explicado pidiendo la configuración.
+(IP Tailscale del VPS; requiere VPN activa.) Sin esto, los otros connectors funcionan igual; solo
+`arca` devolverá un error explicado.
+
+> Nota: la primera vez que se usa un connector, `uv` crea el entorno Python del proyecto
+> automáticamente (puede tardar unos segundos esa primera vez).
 
 ---
 
 ## 5. Primer uso — configurar el perfil del estudio
 
-Antes de trabajar, corré **una vez** la entrevista de configuración global, que captura el perfil de
-NU (rol, CUIT, régimen, jurisdicciones, carpetas locales) para que todas las áreas lo lean:
+Corré **una vez** la entrevista de configuración global (perfil de NU: rol, CUIT, régimen,
+jurisdicciones, carpetas locales):
 
 ```
-/estudio-contable:cold-start-interview
+/mcp-contable:cold-start-interview
 ```
 
-Después ya podés usar la puerta de recepción para cualquier consulta:
+Después usá la puerta de recepción para cualquier consulta:
 
 ```
-/estudio-contable:recepcion
+/mcp-contable:recepcion
 ```
 
-…o ir directo a un área, por ejemplo:
+…o invocá un área directamente, por ejemplo:
 
 ```
-/impuestos-liquidaciones:consulta-impuestos
-/sueldos:consulta-sueldos
-/societario-cumplimiento:consulta-cumplimiento
-/registracion-estados-contables:consulta-registracion
+/mcp-contable:consulta-impuestos
+/mcp-contable:consulta-sueldos
+/mcp-contable:consulta-cumplimiento
+/mcp-contable:consulta-registracion
 ```
 
-Cada área tiene además sus skills de fuente (`buscar-normativa-...`, `analizar-norma-...`) y su
-propio `cold-start-interview` si querés afinar el perfil de esa área.
+Skills de apoyo por área: `buscar-normativa-fiscal` / `analizar-norma-fiscal` (y sus equivalentes
+laboral/contable/societaria), y `perfil-impuestos` / `perfil-sueldos` / `perfil-registracion` /
+`perfil-societario` para afinar el perfil de cada área.
 
 ---
 
-## 6. Verificación rápida y problemas comunes
+## 6. Verificación y problemas comunes
 
-**Verificar que un connector arranca** (smoke test, desde PowerShell):
-```powershell
-uv run --directory D:\git\MCP-Contable\connectors python -m mcp_contable.arca.server
-```
-Si ves el banner de FastMCP, arrancó bien (Ctrl+C para salir).
-
-**Verificar `arca` en vivo** (con VPN Tailscale activa):
+**Verificar `arca` en vivo** (con VPN Tailscale activa), desde PowerShell:
 ```powershell
 curl http://100.88.25.41:8001/health
 ```
 Debería responder `{"status":"ok",...}`.
 
 **Problemas comunes:**
-- **Un connector no carga / "command failed":** revisá que la ruta absoluta en el `.mcp.json` del
-  plugin (`D:\git\MCP-Contable\connectors`) coincida con dónde está el repo en esta PC. Las rutas
-  son **absolutas a esta máquina** a propósito (las relativas se rompen al instalar). Si moviste el
-  repo, actualizá la ruta en los `.mcp.json`.
-- **Warning de `VIRTUAL_ENV`:** si tenés un venv global de Python activo, uv puede mostrar un
-  warning ("does not match the project environment"). Es inofensivo: uv usa el `.venv` del proyecto.
-- **`arca` devuelve "afip-ws not configured":** falta el `connectors\.env` con `AFIP_WS_BASE_URL`
-  (§4).
+- **Un connector no carga:** revisá que `uv` esté en el PATH (`uv --version`). Cowork lo lanza por
+  nombre. Las rutas de los connectors usan `${CLAUDE_PLUGIN_ROOT}` (la carpeta donde Cowork instaló
+  el plugin), así que no dependen de dónde esté el repo.
+- **`arca` devuelve "afip-ws not configured":** falta `connectors\.env` con `AFIP_WS_BASE_URL` (§4).
 - **`arca` devuelve "afip-ws unavailable":** no estás conectado a la VPN Tailscale, o el afip-ws
   está caído.
+- **Warning de `VIRTUAL_ENV`:** inofensivo; uv usa el `.venv` del proyecto.
 
 ---
 
-## 7. Recordatorio importante
+## 7. Actualizar el plugin
+
+Cuando haya cambios, se pushean al repo de GitHub y en Cowork: **Customize → Plugins → mcp-contable
+→ Update** (re-sincroniza desde el repo).
+
+---
+
+## 8. Recordatorio importante
 
 **Toda salida del estudio es un BORRADOR para revisión de un contador matriculado.** El sistema
 nunca afirma un monto, alícuota, tope o vencimiento sin fuente verificada (si no la tiene, lo marca
