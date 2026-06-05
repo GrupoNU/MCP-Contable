@@ -28,9 +28,12 @@ fuentes oficiales vía connectors MCP.
    uv sync
    ```
    Esto crea el entorno `.venv` y deja los 7 connectors listos para correr.
-4. **Solo para el connector `arca` (constancia/padrón AFIP):** estar conectado a la **VPN Tailscale
-   de GrupoNU** (el connector llega al microservicio `afip-ws` del VPS por la red Tailscale). Los
-   otros 6 connectors no requieren VPN.
+4. **Solo para el connector `arca` (constancia/padrón AFIP):** la PC donde corre Cowork debe estar
+   conectada a la **VPN Tailscale de GrupoNU**. El connector NO habla con AFIP directo: llega al
+   microservicio `afip-ws` del VPS (donde vive el certificado de NU) por la red Tailscale
+   (`100.88.25.41`). **Es la misma VPN que ya usás para el MCP `supabase-db`** — si ese ya te
+   funciona, `arca` también. Los otros 6 connectors usan fuentes públicas y **no requieren VPN**.
+   Si Tailscale se desconecta, `arca` avisa con un error claro y los demás siguen andando.
 
 ---
 
