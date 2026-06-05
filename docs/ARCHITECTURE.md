@@ -59,10 +59,13 @@ FastAPI que usa el **certificado de NU (mismo que Odoo)** con el WS `ws_sr_const
 El connector `arca` de MCP-Contable es un **cliente HTTP fino** de ese microservicio (vía
 `common.fetch`): no porta WSAA ni toca el certificado, que vive **solo en el VPS**. Acceso por la
 red **Tailscale** (VPS = `vmi2982897` = `100.88.25.41`). La URL base se configura en `.env`
-(`AFIP_WS_BASE_URL`).
+(`AFIP_WS_BASE_URL=http://100.88.25.41:8001`).
 
-> ⚠️ Plomería pendiente (Fase 1): hoy el afip-ws bindea a `127.0.0.1:8001` del VPS → hay que
-> exponerlo a la interfaz Tailscale de forma segura antes de construir el connector.
+> ✅ **Operativo (2026-06-04):** el afip-ws se expuso a Tailscale (binding `100.88.25.41:8001` en su
+> docker-compose, mismo patrón que supabase-postgres). Verificado de punta a punta: el certificado de
+> NU consulta el padrón real de AFIP (CUIT 30717928993 = NU DESARROLLOS CONSCIENTES S.R.L., ACTIVO),
+> y el connector `arca` lo alcanza por Tailscale (live test verde). El certificado no se expone a
+> internet (UFW no abre el puerto).
 
 ## Pendientes para producción
 

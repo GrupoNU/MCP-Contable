@@ -7,7 +7,7 @@
 
 | Fuente | Tier | Acceso | Estado | Connector |
 |---|---|---|---|---|
-| **ARCA Constancia/Padrón** (vía afip-ws de NU) | A | HTTP al microservicio afip-ws (`GET /fiscal/cuit/{cuit}`) | ✅ código real verificado; cert. de NU autoriza `ws_sr_constancia_inscripcion` | `arca` |
+| **ARCA Constancia/Padrón** (vía afip-ws de NU) | A | HTTP al microservicio afip-ws (`GET /fiscal/cuit/{cuit}`) | ✅ **OPERATIVO** (2026-06-04): afip-ws expuesto a Tailscale; padrón real de NU devuelto; live test verde | `arca` |
 | **datos.gob.ar** (CKAN nacional) | A | API REST `/api/3/action/*` (JSON) | ✅ `package_search` → success:true | `ckan_nacional` |
 | **datos.jus.gob.ar** (CKAN) | A | API REST (JSON) | ✅ (heredado de Legal); dataset `base-de-datos-legislativos-infoleg` confirmado | `ckan_juridico` |
 | **InfoLEG** (Ley IVA 23.349, Ganancias 20.628, Monotributo 24.977, Proc. Trib. 11.683) | B | URL predecible `verNorma.do?id=X` + descarga ZIP vía CKAN | ✅ patrón confirmado (recuperar por id) | `infoleg` |

@@ -2,6 +2,24 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-04 — Post-cierre: connector `arca` operativo (certificado AFIP probado)
+
+**Tarea externa (infra VPS), completada con aprobación de Diego.**
+
+- **Certificado AFIP de NU probado de primera mano:** desde el VPS, `GET /fiscal/cuit/30717928993`
+  devolvió el padrón real → **NU DESARROLLOS CONSCIENTES S.R.L.**, ACTIVO, JURÍDICA, Piñero (Santa Fe).
+  El cert. `afip.crt`/`afip.key` (montado en `/opt/afip-ws/certs`, AFIP_ENV=prod) funciona contra el
+  WS `ws_sr_constancia_inscripcion`.
+- **afip-ws expuesto a Tailscale:** se agregó el binding `100.88.25.41:8001:8000` al
+  `docker-compose.yml` del afip-ws (backup previo; `docker compose config` validado; recreado con
+  `up -d`). Mismo patrón que supabase-postgres. No expuesto a internet (UFW no abre el puerto).
+  El cambio se reflejó también en el repo `VPS_atmosfera` (shared-services/afip-ws/docker-compose.yml).
+- **Connector `arca` operativo end-to-end:** alcanzable desde esta PC por Tailscale (`/health` HTTP
+  200); live test de `arca` verde; `AFIP_WS_BASE_URL=http://100.88.25.41:8001` en `connectors/.env`
+  (gitignored). Docs actualizadas (ARCHITECTURE, SOURCES, .env.example).
+
+---
+
 ## 2026-06-04 — Fase 4: Cierre
 
 **Estado:** completada. **Fases 0-4 del plan terminadas.**
