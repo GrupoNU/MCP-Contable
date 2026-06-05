@@ -1,7 +1,7 @@
 ---
-name: cold-start-interview
+name: perfil-societario
 description: >
-  Entrevista de configuración inicial del plugin societario-cumplimiento. Detecta si el perfil ya
+  Entrevista de configuración del perfil del área societaria y de cumplimiento. Detecta si el perfil ya
   está configurado; si no, entrevista al usuario (rol, entidad/CUIT, tipo societario, régimen,
   jurisdicciones, jurisdicción registral IGJ/RPJEC, terminación de CUIT, regímenes de información,
   carpetas locales) y escribe el perfil personalizado que reemplaza los [PLACEHOLDER] del playbook.

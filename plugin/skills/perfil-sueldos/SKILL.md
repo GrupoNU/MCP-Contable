@@ -1,7 +1,7 @@
 ---
-name: cold-start-interview
+name: perfil-sueldos
 description: >
-  Entrevista de configuración inicial del plugin sueldos. Detecta si el perfil ya está configurado;
+  Entrevista de configuración del perfil del área de sueldos. Detecta si el perfil ya está configurado;
   si no, entrevista al usuario (rol, entidad/CUIT empleador, régimen, jurisdicciones, convenio
   colectivo, ART, dotación, carpetas locales) y escribe el perfil personalizado que reemplaza los
   [PLACEHOLDER] del playbook. Usar al instalar el plugin o cuando el usuario pida reconfigurar.

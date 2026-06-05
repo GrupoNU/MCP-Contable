@@ -1,7 +1,7 @@
 ---
-name: cold-start-interview
+name: perfil-registracion
 description: >
-  Entrevista de configuración inicial del plugin registracion-estados-contables. Detecta si el perfil
+  Entrevista de configuración del perfil del área de registración y estados contables. Detecta si el perfil
   ya está configurado; si no, entrevista al usuario (rol, ente/CUIT, tamaño del ente, normas contables
   aplicables, cierre de ejercicio, libros, carpetas locales) y escribe el perfil personalizado que
   reemplaza los [PLACEHOLDER] del playbook. Usar al instalar el plugin o cuando el usuario pida

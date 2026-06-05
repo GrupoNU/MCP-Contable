@@ -1,10 +1,10 @@
 ---
-name: cold-start-interview
+name: perfil-impuestos
 description: >
-  Entrevista de configuración inicial del plugin impuestos-liquidaciones. Detecta si el perfil ya
-  está configurado; si no, entrevista al usuario (rol, entidad/CUIT, régimen fiscal, jurisdicciones,
+  Entrevista de configuración del perfil del área de impuestos y liquidaciones. Detecta si el perfil
+  ya está configurado; si no, entrevista al usuario (rol, entidad/CUIT, régimen fiscal, jurisdicciones,
   carpetas locales) y escribe el perfil personalizado que reemplaza los [PLACEHOLDER] del playbook.
-  Usar al instalar el plugin o cuando el usuario pida reconfigurar. Tiene versión quick (~2 min) y full.
+  Usar al instalar el plugin o cuando el usuario pida reconfigurar el área. Tiene versión quick (~2 min) y full.
 user-invocable: true
 ---
 
