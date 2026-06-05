@@ -26,7 +26,9 @@ Es **un solo plugin** (`mcp-contable`) que trae todo el estudio. El repo es a la
     `analizar-norma-contable`, `perfil-registracion`. Asientos, libros, balance, RT FACPCE.
   - **Societario:** `consulta-cumplimiento` (+ playbook), `buscar-normativa-societaria`,
     `analizar-norma-societaria`, `perfil-societario`. Vencimientos ARCA, regímenes, IGJ/RPJEC.
-- **`plugin/.mcp.json`** — declara los 7 connectors con `${CLAUDE_PLUGIN_ROOT}/connectors`.
+- **`plugin/.mcp.json`** — declara los 8 connectors con `${CLAUDE_PLUGIN_ROOT}/connectors`
+  (ARCA, 2×CKAN, InfoLEG, Boletín, 2×Santa Fe, y **`odoo`**: opera la contabilidad de NU en
+  Odoo 18 vía XML-RPC — lectura + escritura en borrador, nunca contabiliza solo).
 
 > El plugin vive en la subcarpeta **`plugin/`** (estructura requerida para instalar en Cowork: el
 > `marketplace.json` de la raíz lo declara con `source: "./plugin"`). Todo lo del plugin —
