@@ -1,8 +1,0 @@
-{
-  "name": "sueldos",
-  "version": "0.1.0",
-  "description": "Plugin contable de sueldos y nómina de Argentina para Responsable Inscripto (NU Desarrollos). Asiste con liquidación de haberes, conceptos remunerativos/no remunerativos (LCT Ley 20.744), cargas sociales (aportes y contribuciones SIPA/INSSJP/Obra Social/Asignaciones Familiares/FNE), F.931 (DDJJ de seguridad social ante ARCA), ART (Ley 24.557), convenios colectivos (CCT), SAC, vacaciones e indemnizaciones, con grounding contra fuentes oficiales (ARCA vía afip-ws, CKAN, InfoLEG, Boletín, SIN SF). Nunca afirma alícuotas/topes/mínimos/asignaciones sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
-  "author": {
-    "name": "Grupo NU"
-  }
-}

@@ -1,8 +1,0 @@
-{
-  "name": "societario-cumplimiento",
-  "version": "0.1.0",
-  "description": "Plugin contable de cumplimiento societario y registral de Argentina para Responsable Inscripto (NU Desarrollos). Asiste con el calendario de vencimientos de ARCA, regímenes de información (participaciones societarias, CITI), presentaciones societarias y registrales (Ley General de Sociedades 19.550, estados contables ante el registro) y la distinción de jurisdicción registral (IGJ solo para CABA; RPJEC para Santa Fe), con grounding contra fuentes oficiales (ARCA vía afip-ws, CKAN, InfoLEG, Boletín, SIN SF, calendario SF). Nunca afirma una fecha de vencimiento, un régimen de información vigente ni un trámite registral sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
-  "author": {
-    "name": "Grupo NU"
-  }
-}

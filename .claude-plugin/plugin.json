@@ -1,0 +1,8 @@
+{
+  "name": "mcp-contable",
+  "version": "0.1.0",
+  "description": "Estudio contable de agentes IA para la gestión contable/impositiva argentina (NU Desarrollos). Una puerta de recepción que clasifica la consulta y deriva al área (impuestos/liquidaciones, sueldos, registración/estados contables, societario/cumplimiento), con connectors a fuentes oficiales (ARCA vía afip-ws, datos.gob.ar, datos.jus.gob.ar, InfoLEG, Boletín Oficial, Santa Fe). Nunca afirma montos/alícuotas/vencimientos sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
+  "author": {
+    "name": "Grupo NU"
+  }
+}

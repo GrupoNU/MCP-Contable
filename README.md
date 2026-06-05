@@ -12,13 +12,21 @@ DDJJ) + las fuentes oficiales vía los connectors.
 
 ## Arquitectura
 
-- **`plugins/`** — el "estudio": un plugin por especialidad contable (Markdown). Cada plugin
-  tiene su **playbook** (`CLAUDE.md` de producto = el "cerebro" del área) + skills.
-  - `estudio-contable` — **puerta única / recepción**: clasifica la consulta y deriva al área.
-  - `impuestos-liquidaciones` — IVA, Ganancias, IIBB, monotributo, retenciones/percepciones.
-  - `sueldos` — nómina, cargas sociales, F.931, ART.
-  - `registracion-estados-contables` — asientos, libros, balance, RT FACPCE.
-  - `societario-cumplimiento` — vencimientos ARCA, regímenes de información, IGJ/RPJEC.
+Es **un solo plugin** (`mcp-contable`) que trae todo el estudio. El repo es a la vez el plugin: el
+`marketplace.json` lo declara con `source: "./"`.
+
+- **`skills/`** — los 18 skills del estudio (Markdown, español):
+  - `recepcion` — **puerta única**: clasifica la consulta y deriva al área correcta.
+  - `cold-start-interview` — perfil global del estudio (rol, CUIT, régimen, jurisdicciones).
+  - **Impuestos:** `consulta-impuestos` (+ su `playbook.md`), `buscar-normativa-fiscal`,
+    `analizar-norma-fiscal`, `perfil-impuestos`. IVA, Ganancias, IIBB, monotributo, retenciones.
+  - **Sueldos:** `consulta-sueldos` (+ playbook), `buscar-normativa-laboral`, `analizar-norma-laboral`,
+    `perfil-sueldos`. Nómina, cargas sociales, F.931, ART.
+  - **Registración:** `consulta-registracion` (+ playbook), `buscar-normativa-contable`,
+    `analizar-norma-contable`, `perfil-registracion`. Asientos, libros, balance, RT FACPCE.
+  - **Societario:** `consulta-cumplimiento` (+ playbook), `buscar-normativa-societaria`,
+    `analizar-norma-societaria`, `perfil-societario`. Vencimientos ARCA, regímenes, IGJ/RPJEC.
+- **`.mcp.json`** (raíz) — declara los 7 connectors con `${CLAUDE_PLUGIN_ROOT}/connectors`.
 - **`connectors/`** — servers FastMCP (Python, código en inglés) a fuentes oficiales: ARCA
   (vía microservicio afip-ws), datos.gob.ar / datos.jus.gob.ar (CKAN), InfoLEG, Boletín
   Oficial, Santa Fe (SIN, calendario fiscal).
@@ -44,14 +52,14 @@ como vigente. Por eso:
 Para instalar el estudio en **Claude Cowork / Claude Code**, ver **[INSTALL.md](INSTALL.md)**
 (guía paso a paso para el usuario). Para desarrollo (tests, etc.), ver [QUICKSTART.md](QUICKSTART.md).
 
-Resumen: `uv sync` en `connectors/` → `/plugin marketplace add D:\git\MCP-Contable` →
-`/plugin install <plugin>@mcp-contable` → `/estudio-contable:cold-start-interview`.
+Resumen: en Cowork → Customize → Plugins → Add from a repository → URL del repo → Install
+`mcp-contable` → `/mcp-contable:cold-start-interview`.
 
 ## Estado
 
 ✅ **Fases 0-4 completadas + connector `arca` operativo** (2026-06-04). Repo funcional: 7 connectors
-(127 tests verdes), 5 plugins (18 skills), 3 recursos estáticos y el managed-agent `vencimientos-arca`.
-Listo para instalar en Cowork (los 5 plugins validan con `claude plugin validate`).
+(127 tests verdes), 1 plugin `mcp-contable` (18 skills), 3 recursos estáticos y el managed-agent
+`vencimientos-arca`. Listo para instalar en Cowork desde GitHub (valida con `claude plugin validate`).
 
 **Pendientes de coordinación (no bloquean el repo):**
 - Exponer el microservicio `afip-ws` del VPS a la red Tailscale para activar el connector `arca`

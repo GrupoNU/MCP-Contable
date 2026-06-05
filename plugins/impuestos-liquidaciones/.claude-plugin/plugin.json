@@ -1,8 +1,0 @@
-{
-  "name": "impuestos-liquidaciones",
-  "version": "0.1.0",
-  "description": "Plugin contable de impuestos y liquidaciones de Argentina para Responsable Inscripto (NU Desarrollos). Asiste con IVA (Ley 23.349), Ganancias (Ley 20.628), Ingresos Brutos de Santa Fe (Código Fiscal Ley 3456), monotributo, Bienes Personales y retenciones/percepciones, con grounding contra fuentes oficiales (ARCA vía afip-ws, CKAN, InfoLEG, Boletín, SIN SF). Nunca afirma montos/alícuotas/topes/categorías sin fuente verificada. Toda salida es un borrador para revisión de un contador matriculado.",
-  "author": {
-    "name": "Grupo NU"
-  }
-}
