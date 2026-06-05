@@ -1,5 +1,5 @@
 {
-  "$comment": "Connectors MCP del estudio contable. Rutas con ${CLAUDE_PLUGIN_ROOT} (la raíz del plugin instalado), que Claude Code/Cowork expande a la ubicación real tras instalar desde el repo. El código de los connectors vive en connectors/ dentro de este mismo plugin (la raíz del repo = la raíz del plugin). Requiere 'uv' y Python 3.12 en el PATH de la máquina; uv crea/usa el venv del proyecto automáticamente.",
+  "$comment": "Connectors MCP del estudio contable. Rutas con ${CLAUDE_PLUGIN_ROOT} (la raíz del plugin instalado, que es la subcarpeta plugin/ del repo), que Claude Code/Cowork expande a la ubicación real tras instalar. El código de los connectors vive en connectors/ dentro del plugin. Requiere 'uv' y Python 3.12 en el PATH; uv crea/usa el venv automáticamente. El connector arca lleva AFIP_WS_BASE_URL acá (la IP Tailscale del afip-ws de NU); requiere VPN Tailscale activa.",
   "mcpServers": {
     "arca": {
       "type": "stdio",
@@ -11,7 +11,10 @@
         "python",
         "-m",
         "mcp_contable.arca.server"
-      ]
+      ],
+      "env": {
+        "AFIP_WS_BASE_URL": "http://100.88.25.41:8001"
+      }
     },
     "ckan-nacional": {
       "type": "stdio",

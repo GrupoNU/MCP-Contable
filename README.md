@@ -26,7 +26,12 @@ Es **un solo plugin** (`mcp-contable`) que trae todo el estudio. El repo es a la
     `analizar-norma-contable`, `perfil-registracion`. Asientos, libros, balance, RT FACPCE.
   - **Societario:** `consulta-cumplimiento` (+ playbook), `buscar-normativa-societaria`,
     `analizar-norma-societaria`, `perfil-societario`. Vencimientos ARCA, regímenes, IGJ/RPJEC.
-- **`.mcp.json`** (raíz) — declara los 7 connectors con `${CLAUDE_PLUGIN_ROOT}/connectors`.
+- **`plugin/.mcp.json`** — declara los 7 connectors con `${CLAUDE_PLUGIN_ROOT}/connectors`.
+
+> El plugin vive en la subcarpeta **`plugin/`** (estructura requerida para instalar en Cowork: el
+> `marketplace.json` de la raíz lo declara con `source: "./plugin"`). Todo lo del plugin —
+> `skills/`, `connectors/`, `recursos/`, `managed-agents/`, `docs/`, `.mcp.json`,
+> `.claude-plugin/plugin.json` — está dentro de `plugin/`.
 - **`connectors/`** — servers FastMCP (Python, código en inglés) a fuentes oficiales: ARCA
   (vía microservicio afip-ws), datos.gob.ar / datos.jus.gob.ar (CKAN), InfoLEG, Boletín
   Oficial, Santa Fe (SIN, calendario fiscal).

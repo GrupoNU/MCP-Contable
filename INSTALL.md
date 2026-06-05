@@ -54,17 +54,12 @@ Una vez agregado el marketplace `mcp-contable`, vas a ver **un plugin: `mcp-cont
 
 ---
 
-## 4. Configurar el connector `arca` (AFIP)
+## 4. Connector `arca` (AFIP) — ya viene configurado
 
-El connector `arca` necesita la URL del microservicio `afip-ws`. En la carpeta del repo, creá
-`connectors\.env` (NO se versiona) con:
-
-```
-AFIP_WS_BASE_URL=http://100.88.25.41:8001
-```
-
-(IP Tailscale del VPS; requiere VPN activa.) Sin esto, los otros connectors funcionan igual; solo
-`arca` devolverá un error explicado.
+El connector `arca` ya trae la URL del microservicio `afip-ws` en el `.mcp.json` del plugin
+(`AFIP_WS_BASE_URL=http://100.88.25.41:8001`), así que **no necesitás crear ningún `.env`**. Lo
+único que requiere es estar conectado a la **VPN Tailscale de GrupoNU** (§1.3). Sin VPN, `arca`
+devuelve un error explicado y los otros 6 connectors funcionan igual.
 
 > Nota: la primera vez que se usa un connector, `uv` crea el entorno Python del proyecto
 > automáticamente (puede tardar unos segundos esa primera vez).
@@ -113,7 +108,8 @@ Debería responder `{"status":"ok",...}`.
 - **Un connector no carga:** revisá que `uv` esté en el PATH (`uv --version`). Cowork lo lanza por
   nombre. Las rutas de los connectors usan `${CLAUDE_PLUGIN_ROOT}` (la carpeta donde Cowork instaló
   el plugin), así que no dependen de dónde esté el repo.
-- **`arca` devuelve "afip-ws not configured":** falta `connectors\.env` con `AFIP_WS_BASE_URL` (§4).
+- **`arca` devuelve "afip-ws not configured":** el `.mcp.json` debería traer `AFIP_WS_BASE_URL`
+  (§4); si lo editaste, restaurá ese valor.
 - **`arca` devuelve "afip-ws unavailable":** no estás conectado a la VPN Tailscale, o el afip-ws
   está caído.
 - **Warning de `VIRTUAL_ENV`:** inofensivo; uv usa el `.venv` del proyecto.
