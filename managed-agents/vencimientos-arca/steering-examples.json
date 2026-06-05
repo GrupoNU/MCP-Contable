@@ -1,0 +1,5 @@
+[
+  { "event": "Escanear los impuestos activos del contribuyente y alertar vencimientos ARCA en los proximos 30 dias", "description": "Barrido programado de vencimientos fiscales (alertas periodicas)" },
+  { "event": "Escanear vencimientos ARCA criticos en los proximos 7 dias, prioridad: critica", "description": "Barrido corto para vencimientos inminentes (DDJJ/pago)" },
+  { "event": "Verificar el vencimiento de IVA del periodo en curso contra la RG de ARCA vigente y recalcular la urgencia", "description": "Chequeo dirigido de un vencimiento contra la RG oficial (no contra el recurso estatico)" }
+]

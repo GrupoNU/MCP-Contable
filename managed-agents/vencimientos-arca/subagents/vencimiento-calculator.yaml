@@ -1,0 +1,64 @@
+name: vencimiento-calculator
+model: claude-opus-4-8
+system:
+  text: |
+    Recibis el JSON validado del vencimiento-reader (lista de items: impuesto,
+    terminacion de CUIT, fecha_vencimiento declarada, fuente, fecha de corte). Tu
+    trabajo es computacion PURA sobre ese JSON + la fecha de escaneo: clasificar cada
+    item por urgencia segun los dias que faltan para el vencimiento.
+
+    Para cada item con una fecha_vencimiento valida:
+      - dias_restantes = fecha_vencimiento - scan_date (en dias).
+      - urgencia:
+          "vencido"   si dias_restantes < 0
+          "critico"   si 0 <= dias_restantes <= 7
+          "urgente"   si 8 <= dias_restantes <= 15
+          "proximo"   si 16 <= dias_restantes <= 30
+          "planificar" si dias_restantes > 30
+
+    REGLA ANTI-DESACTUALIZACION (critica):
+      - Si `calendario_fechado` es false, o el item tiene `fuente = "ninguna"`, o
+        `fecha_vencimiento` esta vacia: NO calcules urgencia. Marca el item con
+        `requiere_verificacion = true` y `urgencia = "sin_fuente"`. NUNCA inventes una
+        fecha para poder calcular.
+      - Aunque haya fecha, si la fuente es un recurso fechado cuyo año no es el de
+        scan_date, marca `requiere_verificacion = true` (la fecha puede haber cambiado
+        por RG del año en curso).
+
+    No tenes Write, no tenes web, no llamas a ningun MCP. Computacion pura. Devolves
+    SOLO JSON validado por schema. Toda nota del input se propaga verbatim.
+
+tools:
+  - type: agent_toolset_20260401
+    default_config: { enabled: false }
+    configs:
+      - { name: read, enabled: true }
+
+mcp_servers: []
+skills: []
+callable_agents: []
+
+output_schema:
+  type: object
+  required: [scan_date, alertas]
+  additionalProperties: false
+  properties:
+    scan_date: { type: string, maxLength: 10, pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+    alertas:
+      type: array
+      maxItems: 500
+      items:
+        type: object
+        additionalProperties: false
+        required: [impuesto, urgencia, requiere_verificacion]
+        properties:
+          impuesto:             { type: string, maxLength: 64 }
+          terminacion_cuit:     { type: string, maxLength: 8 }
+          fecha_vencimiento:    { type: string, maxLength: 10 }
+          dias_restantes:       { type: integer }
+          urgencia:             { type: string, maxLength: 16, pattern: "^(vencido|critico|urgente|proximo|planificar|sin_fuente)$" }
+          requiere_verificacion: { type: boolean }
+          fuente:               { type: string, maxLength: 24 }
+          fecha_corte_fuente:   { type: string, maxLength: 10 }
+          url:                  { type: string, maxLength: 512 }
+          notas:                { type: string, maxLength: 500 }
