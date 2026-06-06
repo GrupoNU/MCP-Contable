@@ -1,151 +1,95 @@
 {
-  "$comment": "Connectors MCP del estudio. uv crea el venv en ${CLAUDE_PLUGIN_DATA} (persistente) via UV_PROJECT_ENVIRONMENT/UV_CACHE_DIR, NO en la carpeta cache efimera de Cowork (donde el venv se corrompe en Windows). --project apunta al connectors/ con el pyproject. Requiere uv + Python 3.12 en PATH. Credenciales (API keys) van por variables de entorno del sistema.",
+  "$comment": "Connectors MCP del estudio. Llaman al python.exe del venv del repo DIRECTAMENTE (sin 'uv run'): uv no funciona dentro del sandbox de Cowork (rompe su inspeccion de Python con 'No module named python.get_interpreter_info'). PYTHONPATH apunta al src/. REQUISITO: el repo en D:\\git\\MCP-Contable con su .venv creado (uv sync una vez). Credenciales (API keys) por variables de entorno del sistema, NUNCA en este archivo.",
   "mcpServers": {
     "arca": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.arca.server"
       ],
       "env": {
         "AFIP_WS_BASE_URL": "http://100.88.25.41:8001",
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "ckan-nacional": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.ckan_nacional.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "ckan-juridico": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.ckan_juridico.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "infoleg": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.infoleg.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "boletin-nacional": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.boletin_nacional.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "santafe-sin": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.santafe_sin.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "santafe-fiscal": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.santafe_fiscal.server"
       ],
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     },
     "odoo": {
       "type": "stdio",
-      "command": "uv",
+      "command": "D:\\git\\MCP-Contable\\plugin\\connectors\\.venv\\Scripts\\python.exe",
       "args": [
-        "run",
-        "--python",
-        "C:\\Program Files\\Python312\\python.exe",
-        "--project",
-        "${CLAUDE_PLUGIN_ROOT}/connectors",
-        "python",
         "-m",
         "mcp_contable.odoo.server"
       ],
       "env": {
         "ODOO_URL": "https://odoo.gruponu.com",
         "ODOO_DB": "gruponu_production",
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
-        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache"
+        "PYTHONPATH": "D:\\git\\MCP-Contable\\plugin\\connectors\\src"
       }
     }
   }
