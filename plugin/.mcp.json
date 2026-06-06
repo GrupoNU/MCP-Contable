@@ -6,6 +6,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -23,6 +25,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -39,6 +43,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -55,6 +61,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -71,6 +79,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -87,6 +97,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -103,6 +115,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
@@ -119,6 +133,8 @@
       "command": "uv",
       "args": [
         "run",
+        "--python",
+        "3.12",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}/connectors",
         "python",
