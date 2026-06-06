@@ -225,9 +225,25 @@ def _execute(
 
 
 def _company_domain() -> list:
-    """Domain clause to scope a search to the configured company, or [] if unset."""
+    """Domain clause to scope a search to the configured company, or [] if unset.
+
+    For models that still carry a single ``company_id`` (account.tax, account.journal,
+    account.move, res.partner...).
+    """
     cid = _cfg()["company_id"]
     return [("company_id", "=", int(cid))] if cid and cid.isdigit() else []
+
+
+def _account_company_domain() -> list:
+    """Company scope for ``account.account`` specifically.
+
+    In Odoo 18 the chart of accounts is multi-company: ``account.account`` dropped the
+    single ``company_id`` field in favour of a many2many ``company_ids`` (accounts are
+    shared across companies). So scoping a chart-of-accounts query uses ``company_ids in
+    [cid]`` instead of ``company_id = cid``.
+    """
+    cid = _cfg()["company_id"]
+    return [("company_ids", "in", [int(cid)])] if cid and cid.isdigit() else []
 
 
 def _ok(data: Any, action: str, notes: str = "") -> dict[str, Any]:
@@ -353,8 +369,9 @@ async def odoo_get_plan_cuentas(limit: int = 1000) -> dict[str, Any]:
     if not _cfg()["url"]:
         return _not_configured_error("odoo_get_plan_cuentas")
     limit = max(1, min(int(limit), 2000))
+    # account.account is multi-company in Odoo 18 -> use company_ids (not company_id).
     ids, err = _execute(
-        "account.account", "search", [_company_domain()], {"limit": limit, "order": "code asc"}
+        "account.account", "search", [_account_company_domain()], {"limit": limit, "order": "code asc"}
     )
     if err is not None:
         return err
@@ -704,7 +721,8 @@ async def odoo_crear_cuenta(code: str, name: str, account_type: str) -> dict[str
     vals: dict[str, Any] = {"code": code, "name": name, "account_type": account_type}
     cid = _cfg()["company_id"]
     if cid and cid.isdigit():
-        vals["company_id"] = int(cid)
+        # Odoo 18: account.account is multi-company -> company_ids (m2m), not company_id.
+        vals["company_ids"] = [(6, 0, [int(cid)])]
     new_id, err = _execute("account.account", "create", [vals], {})
     if err is not None:
         return err

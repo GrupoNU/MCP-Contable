@@ -183,6 +183,31 @@ async def test_get_plan_cuentas(_configured, monkeypatch):
     assert out["data"]["accounts"][0]["code"] == "111000"
 
 
+async def test_get_plan_cuentas_scopes_with_company_ids_odoo18(_configured, monkeypatch):
+    """Odoo 18: account.account is multi-company -> filter by company_ids, NOT company_id.
+
+    Regression guard: filtering account.account by company_id raises
+    'Invalid field account.account.company_id' in Odoo 18.
+    """
+    monkeypatch.setenv(odoo.COMPANY_ENV, "1")
+    captured = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.account", "search"):
+            captured["domain"] = args[0]
+            return [10]
+        if (model, method) == ("account.account", "read"):
+            return [{"id": 10, "code": "1", "name": "x", "account_type": "income", "reconcile": False}]
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    await odoo.odoo_get_plan_cuentas()
+    # The domain must use company_ids (m2m 'in'), never company_id.
+    flat = str(captured["domain"])
+    assert "company_ids" in flat, captured["domain"]
+    assert "('company_id'," not in flat, captured["domain"]
+
+
 async def test_buscar_partner_by_cuit(_configured, monkeypatch):
     holder = {}
     def handler(model, method, args, kwargs):
