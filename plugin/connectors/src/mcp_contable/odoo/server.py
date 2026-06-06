@@ -53,6 +53,39 @@ USER_ENV = "ODOO_USER"
 API_KEY_ENV = "ODOO_API_KEY"
 COMPANY_ENV = "ODOO_COMPANY_ID"
 
+
+def _load_local_secrets() -> None:
+    """Load credentials from a local secrets file into os.environ, if present.
+
+    Cowork's MCP sandbox does NOT inherit the OS user environment variables; it only
+    passes the ``env`` block of the .mcp.json. So secrets (API keys) can't be supplied
+    via Windows env vars there. Instead we read them from a local file OUTSIDE the repo:
+
+        ~/.mcp-contable/secrets.env   (simple KEY=value lines; '#' comments allowed)
+
+    The file lives only on the user's machine (never in git, never in the plugin copy),
+    so the API key is never published. Values already present in os.environ win (so a
+    .mcp.json env or a real OS var can still override). Missing file => no-op.
+    """
+    path = os.path.join(os.path.expanduser("~"), ".mcp-contable", "secrets.env")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key, val = key.strip(), val.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = val
+    except (OSError, UnicodeDecodeError):
+        # No file or unreadable => rely on env vars already set. Never raise.
+        pass
+
+
+# Load local secrets at import time so the tools see ODOO_USER/ODOO_API_KEY in Cowork.
+_load_local_secrets()
+
 #: Odoo's API wraps a real, structured ERP => authoritative.
 TIER = SourceTier.A
 
