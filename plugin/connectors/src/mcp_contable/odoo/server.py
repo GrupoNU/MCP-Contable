@@ -734,6 +734,144 @@ async def odoo_crear_cuenta(code: str, name: str, account_type: str) -> dict[str
 
 
 @mcp.tool
+async def odoo_renombrar_cuenta(
+    cuenta: str, nuevo_nombre: str = "", nuevo_codigo: str = ""
+) -> dict[str, Any]:
+    """Rename an account in the chart of accounts (`account.account`).
+
+    Useful for adapting the standard localization chart to NU (e.g. translating
+    English names, or assigning a specific bank/account name). Changes ONLY ``name``
+    and/or ``code`` of an existing account — never the account type, balances, or any
+    accounting data. The change is immediate in Odoo (accounts have no draft state), so
+    this is a write to production: the studio's playbook should confirm with the user
+    first.
+
+    Parameters
+    ----------
+    cuenta:
+        The account to rename, identified by its numeric id OR by its current code
+        (e.g. "111000" / "1.1.1.01.001"). If a code matches more than one account the
+        tool refuses (ambiguous).
+    nuevo_nombre:
+        New ``name`` for the account. Optional (leave empty to keep the current name).
+    nuevo_codigo:
+        New ``code`` for the account. Optional. If given, the tool refuses when another
+        account already uses that code (no duplicates).
+
+    Returns
+    -------
+    dict
+        Grounded result with ``{id, code, name, changed: [fields]}`` on success, or an
+        ``{"error": ...}`` payload (account not found, ambiguous, duplicate code, or
+        nothing to change).
+    """
+    if not _cfg()["url"]:
+        return _not_configured_error("odoo_renombrar_cuenta")
+    cuenta = (cuenta or "").strip()
+    nuevo_nombre = (nuevo_nombre or "").strip()
+    nuevo_codigo = (nuevo_codigo or "").strip()
+    if not cuenta:
+        return _error(
+            "missing cuenta",
+            detail="provide the account id or its current code",
+            action="account.account.write",
+        )
+    if not nuevo_nombre and not nuevo_codigo:
+        return _error(
+            "nothing to change",
+            detail="provide nuevo_nombre and/or nuevo_codigo",
+            action="account.account.write",
+        )
+
+    # Resolve the account by id (if numeric) or by code.
+    if cuenta.isdigit():
+        ids = [int(cuenta)]
+    else:
+        ids, err = _execute(
+            "account.account", "search", [[("code", "=", cuenta)]], {"limit": 2}
+        )
+        if err is not None:
+            return err
+        if not ids:
+            return _error(
+                "account not found", detail=f"no account with code {cuenta!r}", action="account.account.write"
+            )
+        if len(ids) > 1:
+            return _error(
+                "ambiguous account",
+                detail=f"code {cuenta!r} matches more than one account; use the numeric id",
+                action="account.account.write",
+            )
+
+    # Read current values (confirm it exists and to report what changes).
+    rows, err = _execute(
+        "account.account", "read", [ids], {"fields": ["id", "code", "name"]}
+    )
+    if err is not None:
+        return err
+    if not rows:
+        return _error(
+            "account not found", detail=f"no account with id/code {cuenta!r}", action="account.account.write"
+        )
+    current = rows[0]
+
+    vals: dict[str, Any] = {}
+    changed: list[str] = []
+    if nuevo_nombre and nuevo_nombre != current.get("name"):
+        vals["name"] = nuevo_nombre
+        changed.append("name")
+    if nuevo_codigo and nuevo_codigo != current.get("code"):
+        # Refuse if another account already uses that code.
+        dup, err = _execute(
+            "account.account",
+            "search",
+            [[("code", "=", nuevo_codigo), ("id", "!=", current["id"])]],
+            {"limit": 1},
+        )
+        if err is not None:
+            return err
+        if dup:
+            return _error(
+                "duplicate code",
+                detail=f"another account already uses code {nuevo_codigo!r}",
+                action="account.account.write",
+            )
+        vals["code"] = nuevo_codigo
+        changed.append("code")
+
+    if not vals:
+        return _ok(
+            {
+                "id": current["id"],
+                "code": current.get("code"),
+                "name": current.get("name"),
+                "changed": [],
+            },
+            "account.account.write",
+            notes="No change: the new value(s) match the current ones.",
+        )
+
+    ok, err = _execute("account.account", "write", [[current["id"]], vals], {})
+    if err is not None:
+        return err
+
+    return _ok(
+        {
+            "id": current["id"],
+            "code": vals.get("code", current.get("code")),
+            "name": vals.get("name", current.get("name")),
+            "changed": changed,
+            "before": {"code": current.get("code"), "name": current.get("name")},
+        },
+        "account.account.write",
+        notes=(
+            "Account renamed in Odoo (immediate, not a draft). Only name/code changed; "
+            "no accounting data touched."
+        ),
+    )
+
+
+@mcp.tool
 async def odoo_crear_factura_borrador(
     move_type: str,
     partner_id: int,

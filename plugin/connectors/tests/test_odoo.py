@@ -331,6 +331,76 @@ async def test_crear_partner_reuses_existing_by_cuit(_configured, monkeypatch):
     assert all(meth != "create" for (_m, meth, _a, _k) in fake.calls)
 
 
+async def test_renombrar_cuenta_happy_path(_configured, monkeypatch):
+    captured = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.account", "read"):
+            return [{"id": 300, "code": "1.1.1.01.001", "name": "Cash"}]
+        if (model, method) == ("account.account", "write"):
+            captured["write"] = args  # [[id], vals]
+            return True
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_renombrar_cuenta("300", nuevo_nombre="Caja")
+    _assert_envelope(out)
+    assert out["data"]["changed"] == ["name"]
+    assert out["data"]["name"] == "Caja"
+    assert out["data"]["before"]["name"] == "Cash"
+    # write touched only name
+    assert captured["write"][1] == {"name": "Caja"}
+
+
+async def test_renombrar_cuenta_by_code(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.account", "search"):
+            return [300]  # resolved from code
+        if (model, method) == ("account.account", "read"):
+            return [{"id": 300, "code": "1.1.1.01.001", "name": "Cash"}]
+        if (model, method) == ("account.account", "write"):
+            return True
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_renombrar_cuenta("1.1.1.01.001", nuevo_nombre="Caja")
+    _assert_envelope(out)
+    assert out["data"]["name"] == "Caja"
+
+
+async def test_renombrar_cuenta_not_found(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.account", "search"):
+            return []  # code not found
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_renombrar_cuenta("999999", nuevo_nombre="X")
+    # 999999 is numeric -> treated as id; read returns [] -> not found
+    monkeypatch.setattr  # no-op
+    out2 = await odoo.odoo_renombrar_cuenta("NOSUCHCODE", nuevo_nombre="X")
+    assert out2["data"]["error"] == "account not found"
+
+
+async def test_renombrar_cuenta_duplicate_code(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.account", "read"):
+            return [{"id": 300, "code": "1.1.1.01.001", "name": "Cash"}]
+        if (model, method) == ("account.account", "search"):
+            return [999]  # another account already uses the new code
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_renombrar_cuenta("300", nuevo_codigo="411000")
+    assert out["data"]["error"] == "duplicate code"
+
+
+async def test_renombrar_cuenta_nothing_to_change(_configured, monkeypatch):
+    _install_fake(monkeypatch, handler=lambda *a: [])
+    out = await odoo.odoo_renombrar_cuenta("300")  # no new name/code
+    assert out["data"]["error"] == "nothing to change"
+
+
 async def test_crear_cuenta_refuses_duplicate_code(_configured, monkeypatch):
     def handler(model, method, args, kwargs):
         if (model, method) == ("account.account", "search"):
