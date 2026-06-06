@@ -2,6 +2,38 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-06 — Connector Odoo + instalación operativa en Cowork (circuito completo)
+
+**Estado:** ✅ **COMPLETADO. El estudio está instalado y operativo en Cowork con los 8 connectors.**
+
+### Connector `odoo` (8º connector) — opera la contabilidad de NU
+- 8 tools de lectura (health, company, plan_cuentas, impuestos, diarios, partners, comprobantes,
+  l10n_ar) + 3 de escritura **en borrador** (partner, cuenta, factura). **NUNCA contabiliza**
+  (`action_post` no se llama; eso es acción humana en Odoo). Scope a `ODOO_COMPANY_ID` (NU id=1, no Vastu).
+- API XML-RPC de Odoo 18, auth por API key del usuario dedicado `mcp-contable`. 16 tests + live.
+- Verificado en vivo: NU Desarrollos Conscientes S.R.L., 308 cuentas (plan estándar RI en inglés — a
+  adaptar), l10n_ar instalado. El plan de cuentas existe pero NUNCA se cargaron comprobantes → ese es
+  el trabajo que sigue (IVA atrasado, balances, DDJJ).
+
+### Seguridad de Odoo (antes de conectar — riesgo detectado por Diego)
+- Odoo corría con `list_db=True` (gestor de bases accesible → se podía borrar la base). Se hizo
+  **backup** + `odoo.conf` con `list_db=False`, master password fuerte, `proxy_mode`, `dbfilter`.
+  Datos/certificado AFIP intactos. Dominio real: `odoo.gruponu.com` (por Tailscale; no expuesto a
+  internet). Repo VPS_atmosfera sincronizado con prod.
+
+### Instalación en Cowork — cadena de problemas resueltos (ver `docs/COWORK.md`)
+Repo privado→público (#28125) · `source:"./"`→`./plugin` · skills con `name:` duplicado · **`uv` no
+funciona en el sandbox de Cowork** (→ python directo del venv, sin uv) · **el sandbox no hereda env
+vars de Windows** (→ el connector odoo lee `~/.mcp-contable/secrets.env`, fuera del repo).
+**Resultado: los 8 connectors conectan y odoo autentica.**
+
+### Aprendizaje de proceso
+- El chat de Cowork da diagnósticos genéricos/equivocados; **el error real está en los logs**
+  (`mcp-logs-plugin-mcp-contable-<x>/*.jsonl` y `cowork_host_loop_debug.log`). Reproducir el arranque
+  local desde el cwd contaminado antes de pushear cada fix.
+
+---
+
 ## 2026-06-04 — Reestructura: 5 plugins → 1 plugin único (para instalar en Cowork)
 
 **Por qué:** al preparar la instalación en Cowork se descubrieron dos límites reales (verificados en

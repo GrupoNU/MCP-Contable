@@ -15,15 +15,36 @@ antes de uso real), extensible a producto. Es el **gemelo contable de MCP-Juríd
 (`D:\git\MCP-Juridico`), del que se calca la arquitectura y el método (probados).
 
 Arquitectura (calcada del repo oficial verificado `anthropics/claude-for-legal`):
-- **Marketplace local de plugins** contables en Markdown (`plugins/`).
-- **Connectors MCP en Python** (FastMCP, stdio) a fuentes fiscales/contables argentinas (`connectors/`).
+- **UN solo plugin `mcp-contable`** (el repo entero es el plugin). El `marketplace.json` de la
+  raíz lo declara con `source: "./plugin"`. Todo el plugin vive en la subcarpeta **`plugin/`**.
+- **18 skills** (`plugin/skills/`): una puerta de recepción + 4 áreas (impuestos, sueldos,
+  registración, societario), cada una con consulta/buscar/analizar/perfil. El "cerebro" de cada
+  área es su `playbook.md` (junto a su skill de consulta).
+- **8 connectors MCP en Python** (`plugin/connectors/`, FastMCP, stdio): arca (AFIP vía afip-ws),
+  ckan_nacional, ckan_juridico, infoleg, boletin_nacional, santafe_sin, santafe_fiscal, y **odoo**
+  (opera la contabilidad de NU en Odoo 18 — circuito contable completo).
 - El 90% del valor es **conocimiento contable en Markdown**; el código Python es **solo la
   capa de connectors a datos**.
 
-Despliegue: **Claude Cowork / Claude Code**. El motor de IA es la suscripción Claude del propio
-usuario (costo IA $0). Accede a carpetas locales de NU + connectors MCP.
+Despliegue: **Claude Cowork** (principal) / Claude Code. Motor IA = suscripción del usuario ($0).
+Accede a carpetas locales de NU + connectors MCP. **Está INSTALADO y operativo en Cowork** (los 8
+connectors conectan). Cómo se instala/actualiza y los gotchas de Cowork: ver `docs/COWORK.md`.
 
-Plan completo: ver `docs/ARCHITECTURE.md` y el plan en `.claude/plans/`.
+### Mapa rápido del repo (para ubicarse al volver)
+```
+MCP-Contable/                         <- repo = plugin
+├─ .claude-plugin/marketplace.json    <- 1 plugin, source "./plugin"
+├─ CLAUDE.md (este)  README  QUICKSTART  INSTALL.md
+└─ plugin/                            <- EL PLUGIN
+   ├─ .claude-plugin/plugin.json  .mcp.json (8 connectors, python directo SIN uv)
+   ├─ skills/                        <- 18 skills (recepcion, cold-start, consulta-*, etc.)
+   ├─ connectors/                    <- 8 servers FastMCP + tests (.venv pre-creado con uv sync)
+   ├─ recursos/                      <- estáticos con fecha de corte (monotributo, calendario, RT)
+   ├─ managed-agents/                <- cookbook vencimientos-arca
+   └─ docs/                          <- ARCHITECTURE, GROUNDING, SECURITY, SOURCES, COWORK, SESSION_LOG
+```
+
+Plan/decisiones: `.claude/plans/`. Docs de dominio y operación: `plugin/docs/`.
 
 ## Idioma (regla híbrida)
 
@@ -35,10 +56,13 @@ Plan completo: ver `docs/ARCHITECTURE.md` y el plan en `.claude/plans/`.
 
 ## Stack y herramientas
 
-- **Python 3.12** · gestor **uv** (no pip directo). Venv aislado en `connectors/.venv`.
+- **Python 3.12** · gestor **uv** (no pip directo). Venv en `plugin/connectors/.venv`.
 - **FastMCP** para los servers MCP, transporte **stdio** (local, sin endpoints expuestos).
-- **httpx** para HTTP, **selectolax** para scraping, **pytest + respx** para tests.
+- **httpx** para HTTP, **selectolax** para scraping, **xmlrpc.client** para Odoo, **pytest + respx** para tests.
 - Un server FastMCP **por fuente** de datos (no monolito): aísla fallos, se testea por separado.
+- ⚠️ **En Cowork los connectors NO se lanzan con `uv run`** (uv falla en su sandbox) — el `.mcp.json`
+  llama al `python.exe` del `.venv` directo. Ver `docs/COWORK.md`. Para desarrollo local sí se usa
+  `uv run` normalmente.
 
 ## Reglas de ingeniería (estándar Grupo NU)
 
@@ -71,8 +95,10 @@ vencimiento sin `retrieved_at` reciente. Distinguir **proyecto** de **norma vige
 - Los `logs/` de los plugins registran **solo metadata** (tool, timestamp, source_tier) —
   nunca contenido contable de NU.
 - Sin telemetría saliente. Detalles en `docs/SECURITY.md`.
-- **Credenciales (certificado ARCA, claves):** viven fuera del repo. El connector `arca` NO
-  maneja el certificado: reusa el microservicio `afip-ws` del VPS por HTTP (ver `docs/ARCHITECTURE.md`).
+- **Credenciales (certificado ARCA, API key de Odoo, claves):** viven **fuera del repo**.
+  - `arca` NO maneja el certificado: reusa el microservicio `afip-ws` del VPS por HTTP.
+  - `odoo` lee su API key de `~/.mcp-contable/secrets.env` (archivo local, gitignored, fuera del
+    repo) — porque el sandbox de Cowork NO hereda las env vars del sistema. Ver `docs/COWORK.md`.
 
 ## Cómo trabaja el equipo
 
@@ -85,9 +111,22 @@ directo lo que puede delegar**. Los agentes implementan dentro de su scope.
 ## Comandos útiles
 
 ```bash
-cd connectors
-uv sync                       # instalar deps
-uv run pytest -m "not live"   # tests sin pegar a APIs reales (CI)
-uv run pytest                 # incluye tests @live
-uv run python -m mcp_contable.ckan_nacional.server   # correr un server (smoke stdio)
+cd plugin/connectors
+uv sync                       # crear/actualizar .venv (necesario: Cowork usa este venv directo)
+uv run pytest -m "not live"   # tests sin pegar a APIs reales (CI) — 143+ tests
+uv run pytest                 # incluye tests @live (pegan a fuentes reales / Odoo)
+uv run python -m mcp_contable.odoo.server   # correr un server (smoke stdio)
+claude plugin validate ./plugin   # validar el plugin (marketplace + plugin)
 ```
+
+## Al volver a trabajar en este repo (checklist mental)
+
+1. Es **un plugin único** en `plugin/`. El `.mcp.json` usa **python directo (sin uv)** por el
+   sandbox de Cowork — ver `docs/COWORK.md` antes de tocar el `.mcp.json`.
+2. Tras instalar/clonar: `cd plugin/connectors && uv sync` (crea el `.venv` que Cowork usa).
+3. Credenciales sensibles NO van al repo: certificado AFIP en el VPS (afip-ws), API key de Odoo en
+   `~/.mcp-contable/secrets.env`.
+4. Para actualizar el plugin en Cowork tras un push: Customize → Plugins → "..." → Buscar
+   actualizaciones → Actualizar → **reiniciar Cowork**. Lecciones y errores comunes: `docs/COWORK.md`.
+5. Estado y decisiones de cada sesión: `docs/SESSION_LOG.md`. Infra de Odoo: `docs/ODOO.md` (si existe)
+   o las notas de memoria.
