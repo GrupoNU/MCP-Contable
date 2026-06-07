@@ -618,7 +618,17 @@ async def odoo_check_l10n_ar() -> dict[str, Any]:
 
 _DRAFT_NOTE = (
     "Created as DRAFT in Odoo (state='draft'): it does NOT affect the ledger until a human "
-    "reviews and posts it in Odoo. This connector never posts."
+    "reviews and posts it in Odoo."
+)
+
+# ⚠️ DELIBERATE DEVIATION from the original draft-only safety model (decision 2026-06-06, Diego).
+# For the 3-year accounting migration, posting directly was explicitly authorized. Posting writes
+# to the PRODUCTION ledger and is NOT reversible by delete (only by reversal). Tools that can post
+# carry this note so the result makes the irreversibility visible to the operator.
+_POSTED_NOTE = (
+    "POSTED to the Odoo ledger (state='posted'): this AFFECTS the production ledger and is "
+    "irreversible (a posted entry can only be reversed, not deleted). Verify the amounts/date/account "
+    "are correct. Posting was explicitly authorized for the migration (2026-06-06)."
 )
 
 
@@ -878,11 +888,17 @@ async def odoo_crear_factura_borrador(
     journal_id: int,
     invoice_date: str,
     lineas: list,
+    auto_post: bool = False,
 ) -> dict[str, Any]:
-    """Create an invoice (`account.move`) in DRAFT — NEVER posted.
+    """Create an invoice (`account.move`). Draft by default; can post if ``auto_post=True``.
 
-    Use for loading purchase/sale comprobantes. The move is created in ``state='draft'``;
-    a human reviews and posts it in Odoo. This connector never calls ``action_post``.
+    Use for loading purchase/sale comprobantes. By default the move is created in
+    ``state='draft'`` for human review. When ``auto_post=True`` the connector additionally
+    calls ``action_post`` so the comprobante lands directly in the ledger.
+
+    ⚠️ ``auto_post=True`` writes to the PRODUCTION ledger and is IRREVERSIBLE by delete
+    (a posted move can only be reversed). Authorized for the 3-year migration (2026-06-06).
+    Default stays ``False`` so the safe behaviour is the one you get unless you opt in.
 
     Parameters
     ----------
@@ -897,12 +913,14 @@ async def odoo_crear_factura_borrador(
     lineas:
         List of line dicts: each ``{name, account_id, quantity, price_unit, tax_ids?}``
         where ``tax_ids`` is an optional list of tax ids.
+    auto_post:
+        When True, post the move after creating it (state -> 'posted'). Default False (draft).
 
     Returns
     -------
     dict
-        Grounded result with ``{id, move_type, state: "draft", n_lineas}`` and a note that
-        it is a draft needing human review/posting.
+        Grounded result with ``{id, move_type, state, n_lineas}`` (state "posted" when
+        auto_post succeeded, else "draft") and a note describing the resulting state.
     """
     if not _cfg()["url"]:
         return _not_configured_error("odoo_crear_factura_borrador")
@@ -951,8 +969,165 @@ async def odoo_crear_factura_borrador(
     new_id, err = _execute("account.move", "create", [move_vals], {})
     if err is not None:
         return err
+
+    if auto_post:
+        # Post the freshly-created move. If posting fails (e.g. unbalanced, missing account),
+        # the move stays in draft and we surface the error — the draft id is reported in detail
+        # so the operator can find and fix it in Odoo.
+        _, post_err = _execute("account.move", "action_post", [[new_id]], {})
+        if post_err is not None:
+            prev = post_err.get("data", {}).get("detail", "")
+            post_err["data"]["detail"] = f"created draft id={new_id} but posting failed: {prev}"
+            return post_err
+        return _ok(
+            {"id": new_id, "move_type": move_type, "state": "posted", "n_lineas": len(line_cmds)},
+            "account.move.create",
+            notes=_POSTED_NOTE,
+        )
+
     return _ok(
         {"id": new_id, "move_type": move_type, "state": "draft", "n_lineas": len(line_cmds)},
+        "account.move.create",
+        notes=_DRAFT_NOTE,
+    )
+
+
+@mcp.tool
+async def odoo_crear_asiento(
+    fecha: str,
+    lineas: list,
+    journal_id: int = 0,
+    referencia: str = "",
+    auto_post: bool = True,
+) -> dict[str, Any]:
+    """Create a manual accounting entry (`account.move` of type 'entry') — posts by default.
+
+    For double-entry journal entries that aren't invoices (openings, adjustments, accruals,
+    reclasifications) during the migration. Each line debits or credits one account; the sum
+    of debits must equal the sum of credits or Odoo rejects the post.
+
+    ⚠️ ``auto_post`` defaults to True here: the entry is posted to the PRODUCTION ledger and is
+    IRREVERSIBLE by delete (only by reversal). Authorized for the 3-year migration (2026-06-06).
+    Pass ``auto_post=False`` to leave it in draft for review.
+
+    Parameters
+    ----------
+    fecha:
+        Accounting date ``YYYY-MM-DD`` (use the REAL date of the entry for correct period balances).
+    lineas:
+        List of line dicts: each ``{account_id, debit?, credit?, name?, partner_id?}``.
+        Provide ``debit`` OR ``credit`` per line (the other defaults to 0). Sum(debit)==Sum(credit).
+    journal_id:
+        Journal id for the entry (from odoo_get_diarios; typically the 'general'/misc journal).
+        If 0, Odoo picks the company's default general journal.
+    referencia:
+        Optional reference/label for the entry (``ref``).
+    auto_post:
+        When True (default), post the entry. False leaves it in draft.
+
+    Returns
+    -------
+    dict
+        Grounded result with ``{id, state, n_lineas, debit_total, credit_total, balanced}``.
+        ``state`` is "posted" when auto_post succeeded, else "draft".
+    """
+    if not _cfg()["url"]:
+        return _not_configured_error("odoo_crear_asiento")
+    if not (fecha and isinstance(lineas, list) and len(lineas) >= 2):
+        return _error(
+            "missing fields",
+            detail="fecha and a lineas list with at least 2 lines are required",
+            action="account.move.create",
+        )
+
+    line_cmds = []
+    debit_total = 0.0
+    credit_total = 0.0
+    for ln in lineas:
+        if not isinstance(ln, dict) or not ln.get("account_id"):
+            return _error(
+                "invalid line",
+                detail="each line must be a dict with an account_id",
+                action="account.move.create",
+            )
+        debit = round(float(ln.get("debit") or 0.0), 2)
+        credit = round(float(ln.get("credit") or 0.0), 2)
+        if debit < 0 or credit < 0:
+            return _error("invalid amounts", detail="debit/credit must be >= 0", action="account.move.create")
+        if debit and credit:
+            return _error(
+                "invalid line",
+                detail="a line cannot have both debit and credit; split it into two lines",
+                action="account.move.create",
+            )
+        debit_total += debit
+        credit_total += credit
+        vals: dict[str, Any] = {
+            "account_id": int(ln["account_id"]),
+            "name": str(ln.get("name") or referencia or "/"),
+            "debit": debit,
+            "credit": credit,
+        }
+        if ln.get("partner_id"):
+            vals["partner_id"] = int(ln["partner_id"])
+        line_cmds.append((0, 0, vals))
+
+    debit_total = round(debit_total, 2)
+    credit_total = round(credit_total, 2)
+    balanced = abs(debit_total - credit_total) < 0.01
+    if not balanced:
+        # Reject before touching Odoo — a non-balanced entry can never be posted anyway.
+        return _error(
+            "entry not balanced",
+            detail=f"debit_total={debit_total} != credit_total={credit_total}",
+            action="account.move.create",
+        )
+
+    move_vals: dict[str, Any] = {
+        "move_type": "entry",
+        "date": fecha,
+        "line_ids": line_cmds,
+    }
+    if referencia:
+        move_vals["ref"] = referencia
+    if journal_id:
+        move_vals["journal_id"] = int(journal_id)
+    cid = _cfg()["company_id"]
+    if cid and cid.isdigit():
+        move_vals["company_id"] = int(cid)
+
+    new_id, err = _execute("account.move", "create", [move_vals], {})
+    if err is not None:
+        return err
+
+    if auto_post:
+        _, post_err = _execute("account.move", "action_post", [[new_id]], {})
+        if post_err is not None:
+            prev = post_err.get("data", {}).get("detail", "")
+            post_err["data"]["detail"] = f"created draft entry id={new_id} but posting failed: {prev}"
+            return post_err
+        return _ok(
+            {
+                "id": new_id,
+                "state": "posted",
+                "n_lineas": len(line_cmds),
+                "debit_total": debit_total,
+                "credit_total": credit_total,
+                "balanced": balanced,
+            },
+            "account.move.create",
+            notes=_POSTED_NOTE,
+        )
+
+    return _ok(
+        {
+            "id": new_id,
+            "state": "draft",
+            "n_lineas": len(line_cmds),
+            "debit_total": debit_total,
+            "credit_total": credit_total,
+            "balanced": balanced,
+        },
         "account.move.create",
         notes=_DRAFT_NOTE,
     )

@@ -269,12 +269,12 @@ async def test_odoo_fault_is_graceful(_configured, monkeypatch):
 # --------------------------------------------------------------------------- #
 
 
-async def test_crear_factura_borrador_creates_draft_never_posts(_configured, monkeypatch):
+async def test_crear_factura_default_is_draft_no_post(_configured, monkeypatch):
+    """Default behaviour (auto_post omitted) stays draft-only — does NOT post."""
     holder = {}
 
     def handler(model, method, args, kwargs):
         if (model, method) == ("account.move", "create"):
-            # The created vals must NOT set state to posted.
             vals = args[0]
             assert vals.get("state") in (None, "draft")
             assert vals["move_type"] == "in_invoice"
@@ -292,9 +292,145 @@ async def test_crear_factura_borrador_creates_draft_never_posts(_configured, mon
     _assert_envelope(out)
     assert out["data"]["id"] == 99
     assert out["data"]["state"] == "draft"
-    # CRITICAL: the connector must never have called action_post.
+    # Default must NOT post.
     methods = [(m, meth) for (m, meth, _a, _k) in holder["obj"].calls]
     assert ("account.move", "action_post") not in methods
+
+
+async def test_crear_factura_auto_post_calls_action_post(_configured, monkeypatch):
+    """auto_post=True creates then posts; result state is 'posted'."""
+    holder = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "create"):
+            return 101
+        if (model, method) == ("account.move", "action_post"):
+            assert args[0] == [101]  # posts the just-created move
+            return True
+        return []
+
+    _install_fake(monkeypatch, handler=handler, obj_holder=holder)
+    out = await odoo.odoo_crear_factura_borrador(
+        move_type="out_invoice",
+        partner_id=5,
+        journal_id=2,
+        invoice_date="2026-06-05",
+        lineas=[{"name": "Venta", "account_id": 11, "quantity": 1, "price_unit": 1000.0}],
+        auto_post=True,
+    )
+    _assert_envelope(out)
+    assert out["data"]["id"] == 101
+    assert out["data"]["state"] == "posted"
+    methods = [(m, meth) for (m, meth, _a, _k) in holder["obj"].calls]
+    assert ("account.move", "action_post") in methods
+
+
+async def test_crear_factura_auto_post_failure_surfaces_draft_id(_configured, monkeypatch):
+    """If posting fails, the move stays draft and the error reports the draft id."""
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "create"):
+            return 102
+        if (model, method) == ("account.move", "action_post"):
+            raise xmlrpc.client.Fault(1, "ValidationError: unbalanced")
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_crear_factura_borrador(
+        move_type="out_invoice",
+        partner_id=5,
+        journal_id=2,
+        invoice_date="2026-06-05",
+        lineas=[{"name": "Venta", "account_id": 11, "quantity": 1, "price_unit": 1000.0}],
+        auto_post=True,
+    )
+    _assert_envelope(out)
+    assert "error" in out["data"]
+    assert "id=102" in out["data"]["detail"]
+
+
+# --------------------------------------------------------------------------- #
+# odoo_crear_asiento (manual journal entry, posts by default)                  #
+# --------------------------------------------------------------------------- #
+
+
+async def test_crear_asiento_balanced_posts_by_default(_configured, monkeypatch):
+    holder = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "create"):
+            vals = args[0]
+            assert vals["move_type"] == "entry"
+            assert len(vals["line_ids"]) == 2
+            return 200
+        if (model, method) == ("account.move", "action_post"):
+            assert args[0] == [200]
+            return True
+        return []
+
+    _install_fake(monkeypatch, handler=handler, obj_holder=holder)
+    out = await odoo.odoo_crear_asiento(
+        fecha="2023-12-31",
+        lineas=[
+            {"account_id": 11, "debit": 1000.0, "name": "Apertura caja"},
+            {"account_id": 22, "credit": 1000.0, "name": "Capital"},
+        ],
+    )
+    _assert_envelope(out)
+    assert out["data"]["state"] == "posted"
+    assert out["data"]["balanced"] is True
+    assert out["data"]["debit_total"] == 1000.0
+    methods = [(m, meth) for (m, meth, _a, _k) in holder["obj"].calls]
+    assert ("account.move", "action_post") in methods
+
+
+async def test_crear_asiento_unbalanced_rejected_before_odoo(_configured, monkeypatch):
+    """A non-balanced entry is rejected without ever calling create/post."""
+    fake = _install_fake(monkeypatch, handler=lambda *a: 1)
+    out = await odoo.odoo_crear_asiento(
+        fecha="2023-12-31",
+        lineas=[
+            {"account_id": 11, "debit": 1000.0},
+            {"account_id": 22, "credit": 900.0},
+        ],
+    )
+    _assert_envelope(out)
+    assert out["data"]["error"] == "entry not balanced"
+    assert all(meth not in ("create", "action_post") for (_m, meth, _a, _k) in fake.calls)
+
+
+async def test_crear_asiento_draft_when_auto_post_false(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "create"):
+            return 201
+        return []
+
+    fake = _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_crear_asiento(
+        fecha="2023-12-31",
+        lineas=[
+            {"account_id": 11, "debit": 500.0},
+            {"account_id": 22, "credit": 500.0},
+        ],
+        auto_post=False,
+    )
+    _assert_envelope(out)
+    assert out["data"]["state"] == "draft"
+    assert all(meth != "action_post" for (_m, meth, _a, _k) in fake.calls)
+
+
+async def test_crear_asiento_line_with_both_debit_and_credit_rejected(_configured, monkeypatch):
+    fake = _install_fake(monkeypatch, handler=lambda *a: 1)
+    out = await odoo.odoo_crear_asiento(
+        fecha="2023-12-31",
+        lineas=[
+            {"account_id": 11, "debit": 100.0, "credit": 100.0},
+            {"account_id": 22, "credit": 100.0},
+        ],
+    )
+    _assert_envelope(out)
+    assert out["data"]["error"] == "invalid line"
+    assert all(meth != "create" for (_m, meth, _a, _k) in fake.calls)
 
 
 async def test_crear_factura_invalid_move_type(_configured, monkeypatch):
