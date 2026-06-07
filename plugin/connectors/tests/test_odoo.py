@@ -649,6 +649,93 @@ async def test_balance_unreachable_is_graceful(_configured, monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
+# odoo_reversar_asiento (reverse a posted move)                                #
+# --------------------------------------------------------------------------- #
+
+
+async def test_reversar_posted_move_creates_and_posts_reversal(_configured, monkeypatch):
+    holder = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "read"):
+            return [{"id": 500, "name": "MV01/2023/0001", "state": "posted", "company_id": [1, "NU"], "move_type": "entry"}]
+        if (model, method) == ("account.move", "_reverse_moves"):
+            return [777]
+        if (model, method) == ("account.move", "action_post"):
+            assert args[0] == [777]
+            return True
+        return []
+
+    _install_fake(monkeypatch, handler=handler, obj_holder=holder)
+    out = await odoo.odoo_reversar_asiento(move_id=500, fecha="2023-12-31", motivo="Error de carga")
+    _assert_envelope(out)
+    assert out["data"]["original_id"] == 500
+    assert out["data"]["reversal_id"] == 777
+    assert out["data"]["state"] == "posted"
+    methods = [(m, meth) for (m, meth, _a, _k) in holder["obj"].calls]
+    assert ("account.move", "_reverse_moves") in methods
+    assert ("account.move", "action_post") in methods
+
+
+async def test_reversar_refuses_non_posted_move(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "read"):
+            return [{"id": 501, "name": "draft", "state": "draft", "company_id": [1, "NU"], "move_type": "entry"}]
+        return []
+
+    fake = _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_reversar_asiento(move_id=501)
+    _assert_envelope(out)
+    assert out["data"]["error"] == "move not posted"
+    # never attempted the reversal
+    assert all(meth != "_reverse_moves" for (_m, meth, _a, _k) in fake.calls)
+
+
+async def test_reversar_move_not_found(_configured, monkeypatch):
+    _install_fake(monkeypatch, handler=lambda *a: [])
+    out = await odoo.odoo_reversar_asiento(move_id=999)
+    _assert_envelope(out)
+    assert out["data"]["error"] == "move not found"
+
+
+async def test_reversar_company_mismatch(_configured, monkeypatch):
+    monkeypatch.setenv(odoo.COMPANY_ENV, "1")
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "read"):
+            return [{"id": 502, "name": "x", "state": "posted", "company_id": [2, "Vastu"], "move_type": "entry"}]
+        return []
+
+    fake = _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_reversar_asiento(move_id=502)
+    _assert_envelope(out)
+    assert out["data"]["error"] == "company mismatch"
+    assert all(meth != "_reverse_moves" for (_m, meth, _a, _k) in fake.calls)
+
+
+async def test_reversar_draft_when_auto_post_false(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move", "read"):
+            return [{"id": 503, "name": "x", "state": "posted", "company_id": [1, "NU"], "move_type": "entry"}]
+        if (model, method) == ("account.move", "_reverse_moves"):
+            return [778]
+        return []
+
+    fake = _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_reversar_asiento(move_id=503, auto_post=False)
+    _assert_envelope(out)
+    assert out["data"]["state"] == "draft"
+    assert out["data"]["reversal_id"] == 778
+    assert all(meth != "action_post" for (_m, meth, _a, _k) in fake.calls)
+
+
+async def test_reversar_not_configured(monkeypatch):
+    monkeypatch.delenv(odoo.URL_ENV, raising=False)
+    out = await odoo.odoo_reversar_asiento(move_id=1)
+    assert out["data"]["error"] == "odoo not configured"
+
+
+# --------------------------------------------------------------------------- #
 # LIVE (needs real Odoo + API key). Excluded from CI.                         #
 # --------------------------------------------------------------------------- #
 

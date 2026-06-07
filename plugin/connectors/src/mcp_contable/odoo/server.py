@@ -1238,6 +1238,134 @@ async def odoo_balance_sumas_saldos(
     )
 
 
+@mcp.tool
+async def odoo_reversar_asiento(
+    move_id: int,
+    fecha: str = "",
+    motivo: str = "",
+    auto_post: bool = True,
+) -> dict[str, Any]:
+    """Reverse a POSTED move (`account.move`) — the safe way to undo a posted entry.
+
+    A posted entry cannot be deleted; the correct correction is a REVERSAL: a mirror entry
+    (debits<->credits swapped) that nets the original to zero, leaving an audit trail. Use
+    this to fix a comprobante/asiento that was posted with wrong amounts/date/account during
+    the migration. Calls Odoo's native ``_reverse_moves``.
+
+    The tool refuses to reverse a move that is not ``posted`` (a draft should be edited/deleted
+    in Odoo instead, not reversed).
+
+    ⚠️ Creates a new entry in the PRODUCTION ledger. When ``auto_post=True`` (default) the
+    reversal is posted immediately so the original is effectively cancelled. Authorized for the
+    migration (2026-06-06).
+
+    Parameters
+    ----------
+    move_id:
+        The id of the posted move to reverse (from odoo_get_comprobantes).
+    fecha:
+        Accounting date for the reversal (``YYYY-MM-DD``). If empty, Odoo uses the original
+        move's date. For period integrity, reverse in the SAME period as the original when possible.
+    motivo:
+        Reason/label for the reversal (stored as the reversal ref). Recommended for the audit trail.
+    auto_post:
+        When True (default), post the reversal. False leaves it in draft for review.
+
+    Returns
+    -------
+    dict
+        Grounded result with ``{original_id, reversal_id, state, motivo}`` on success, or an
+        ``{"error": ...}`` payload (move not found, not posted, or reversal failed).
+    """
+    if not _cfg()["url"]:
+        return _not_configured_error("odoo_reversar_asiento")
+    if not move_id or int(move_id) <= 0:
+        return _error("missing move_id", detail="provide the id of the posted move", action="account.move._reverse_moves")
+
+    # Read the move to validate it exists and is posted (scoped to the configured company).
+    rows, err = _execute(
+        "account.move",
+        "read",
+        [[int(move_id)]],
+        {"fields": ["id", "name", "state", "company_id", "move_type"]},
+    )
+    if err is not None:
+        return err
+    if not rows:
+        return _error("move not found", detail=f"no account.move with id={move_id}", action="account.move.read")
+    move = rows[0]
+    if move.get("state") != "posted":
+        return _error(
+            "move not posted",
+            detail=f"id={move_id} is state='{move.get('state')}'; only posted moves are reversed. "
+            "Edit or delete a draft directly in Odoo.",
+            action="account.move._reverse_moves",
+        )
+    cid = _cfg()["company_id"]
+    if cid and cid.isdigit():
+        mv_cid = move.get("company_id")
+        mv_cid = mv_cid[0] if isinstance(mv_cid, list) else mv_cid
+        if mv_cid and int(mv_cid) != int(cid):
+            return _error(
+                "company mismatch",
+                detail=f"move id={move_id} belongs to company {mv_cid}, not the configured {cid}",
+                action="account.move._reverse_moves",
+            )
+
+    # Build default values for the reversal entry.
+    default_values: dict[str, Any] = {}
+    if fecha:
+        default_values["date"] = fecha
+    if motivo:
+        default_values["ref"] = motivo
+
+    # _reverse_moves(default_values_list, cancel=False) -> recordset of the reversal moves.
+    # We pass cancel=False and post separately so we control posting via auto_post.
+    rev_ids, err = _execute(
+        "account.move",
+        "_reverse_moves",
+        [[int(move_id)], [default_values]],
+        {"cancel": False},
+    )
+    if err is not None:
+        return err
+    # _reverse_moves returns a recordset; over XML-RPC it comes back as a list of ids.
+    reversal_id = None
+    if isinstance(rev_ids, list) and rev_ids:
+        reversal_id = rev_ids[0]
+    elif isinstance(rev_ids, int):
+        reversal_id = rev_ids
+    if not reversal_id:
+        return _error(
+            "reversal not created",
+            detail="Odoo did not return a reversal id",
+            action="account.move._reverse_moves",
+        )
+
+    if auto_post:
+        _, post_err = _execute("account.move", "action_post", [[int(reversal_id)]], {})
+        if post_err is not None:
+            prev = post_err.get("data", {}).get("detail", "")
+            post_err["data"]["detail"] = (
+                f"reversal id={reversal_id} created (draft) for move id={move_id} but posting failed: {prev}"
+            )
+            return post_err
+        return _ok(
+            {"original_id": int(move_id), "reversal_id": reversal_id, "state": "posted", "motivo": motivo or None},
+            "account.move._reverse_moves",
+            notes=(
+                "Posted reversal created. The original move is netted to zero by the mirror entry; "
+                "both remain in the ledger as an audit trail (the original is NOT deleted)."
+            ),
+        )
+
+    return _ok(
+        {"original_id": int(move_id), "reversal_id": reversal_id, "state": "draft", "motivo": motivo or None},
+        "account.move._reverse_moves",
+        notes=_DRAFT_NOTE,
+    )
+
+
 if __name__ == "__main__":
     # Run as a stdio MCP server. Do NOT invoke this in a non-interactive smoke test --
     # it would block waiting for stdio.
