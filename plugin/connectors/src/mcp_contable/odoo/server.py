@@ -1133,6 +1133,111 @@ async def odoo_crear_asiento(
     )
 
 
+# ---------------------------------------------------------------------------
+# Tools — PHASE 3: REPORTS (read-only, zero risk)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool
+async def odoo_balance_sumas_saldos(
+    desde: str = "",
+    hasta: str = "",
+    solo_posteados: bool = True,
+    incluir_cero: bool = False,
+) -> dict[str, Any]:
+    """Trial balance (balance de sumas y saldos): debit/credit/balance per account.
+
+    Computed directly from ``account.move.line`` via ``read_group`` — independent of the OCA
+    ``account_financial_report`` module. Read-only: touches no data. Scoped to ``ODOO_COMPANY_ID``.
+
+    Returns the double-entry control flag ``cuadra`` (total debit == total credit). During the
+    3-year migration this surfaces unbalanced periods immediately.
+
+    Parameters
+    ----------
+    desde, hasta:
+        Optional accounting-date range (``YYYY-MM-DD``, inclusive) on the move line ``date``.
+    solo_posteados:
+        True (default) counts only posted entries (the "real" ledger balance). False also
+        includes drafts.
+    incluir_cero:
+        When False (default), accounts with no debit and no credit in the period are omitted.
+
+    Returns
+    -------
+    dict
+        Grounded result whose ``data`` is ``{"periodo", "solo_posteados", "cuentas":
+        [{account_id, account, debito, credito, saldo, movimientos}], "totales": {debito,
+        credito, cuadra}, "count"}`` ordered by account.
+    """
+    if not _cfg()["url"]:
+        return _not_configured_error("odoo_balance_sumas_saldos")
+
+    domain = _company_domain()  # account.move.line carries company_id
+    if desde:
+        domain = domain + [("date", ">=", desde)]
+    if hasta:
+        domain = domain + [("date", "<=", hasta)]
+    if solo_posteados:
+        domain = domain + [("parent_state", "=", "posted")]
+    else:
+        domain = domain + [("parent_state", "in", ["posted", "draft"])]
+
+    rows, err = _execute(
+        "account.move.line",
+        "read_group",
+        [domain],
+        {
+            "fields": ["debit:sum", "credit:sum", "balance:sum"],
+            "groupby": ["account_id"],
+            "lazy": False,
+        },
+    )
+    if err is not None:
+        return err
+
+    cuentas = []
+    for r in (rows or []):
+        if not isinstance(r, dict):
+            continue
+        acc = r.get("account_id") or [None, None]
+        deb = round(float(r.get("debit") or 0.0), 2)
+        cre = round(float(r.get("credit") or 0.0), 2)
+        sal = round(float(r.get("balance") or 0.0), 2)
+        if not incluir_cero and deb == 0.0 and cre == 0.0:
+            continue
+        cuentas.append(
+            {
+                "account_id": acc[0] if isinstance(acc, list) else None,
+                "account": acc[1] if isinstance(acc, list) else None,
+                "debito": deb,
+                "credito": cre,
+                "saldo": sal,
+                "movimientos": r.get("__count"),
+            }
+        )
+
+    cuentas.sort(key=lambda x: (x["account"] or ""))
+    tot_deb = round(sum(c["debito"] for c in cuentas), 2)
+    tot_cre = round(sum(c["credito"] for c in cuentas), 2)
+    cuadra = abs(tot_deb - tot_cre) < 0.01
+
+    return _ok(
+        {
+            "periodo": {"desde": desde or None, "hasta": hasta or None},
+            "solo_posteados": solo_posteados,
+            "cuentas": cuentas,
+            "totales": {"debito": tot_deb, "credito": tot_cre, "cuadra": cuadra},
+            "count": len(cuentas),
+        },
+        "account.move.line",
+        notes=(
+            "Trial balance computed from account.move.line via read_group (independent of OCA "
+            "report module). 'cuadra' is the double-entry control: total debit must equal total credit."
+        ),
+    )
+
+
 if __name__ == "__main__":
     # Run as a stdio MCP server. Do NOT invoke this in a non-interactive smoke test --
     # it would block waiting for stdio.

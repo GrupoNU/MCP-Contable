@@ -3,8 +3,8 @@
 The connector talks to Odoo via ``xmlrpc.client.ServerProxy``. These tests replace that
 proxy with a fake so no real Odoo is contacted. Config is injected via monkeypatch env.
 
-Safety is the point of several tests: writes must create in DRAFT and the connector must
-never call ``action_post``.
+Safety is the point of several tests: writes default to DRAFT; posting only happens on
+explicit opt-in (auto_post), authorized for the 3-year migration (2026-06-06).
 
 Live tests (``@pytest.mark.live``) need a reachable Odoo + valid API key and are excluded
 from CI; run with the ODOO_* env set.
@@ -548,6 +548,104 @@ async def test_crear_cuenta_refuses_duplicate_code(_configured, monkeypatch):
     _assert_envelope(out)
     assert out["data"]["created"] is False
     assert all(meth != "create" for (_m, meth, _a, _k) in fake.calls)
+
+
+# --------------------------------------------------------------------------- #
+# odoo_balance_sumas_saldos (trial balance via read_group, read-only)         #
+# --------------------------------------------------------------------------- #
+
+
+async def test_balance_happy_path_cuadra(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move.line", "read_group"):
+            return [
+                {"account_id": [11, "1.1.01 Caja"], "debit": 1000.0, "credit": 0.0, "balance": 1000.0, "__count": 2},
+                {"account_id": [22, "3.1.01 Capital"], "debit": 0.0, "credit": 1000.0, "balance": -1000.0, "__count": 1},
+            ]
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_balance_sumas_saldos(desde="2023-01-01", hasta="2023-12-31")
+    _assert_envelope(out)
+    assert out["data"]["count"] == 2
+    assert out["data"]["totales"]["debito"] == 1000.0
+    assert out["data"]["totales"]["credito"] == 1000.0
+    assert out["data"]["totales"]["cuadra"] is True
+    # ordered by account name
+    assert out["data"]["cuentas"][0]["account"] == "1.1.01 Caja"
+
+
+async def test_balance_detects_descuadre(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move.line", "read_group"):
+            return [
+                {"account_id": [11, "Caja"], "debit": 1000.0, "credit": 0.0, "balance": 1000.0, "__count": 1},
+                {"account_id": [22, "Capital"], "debit": 0.0, "credit": 900.0, "balance": -900.0, "__count": 1},
+            ]
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_balance_sumas_saldos()
+    _assert_envelope(out)
+    assert out["data"]["totales"]["cuadra"] is False
+
+
+async def test_balance_empty_period(_configured, monkeypatch):
+    _install_fake(monkeypatch, handler=lambda *a: [])
+    out = await odoo.odoo_balance_sumas_saldos(desde="2030-01-01", hasta="2030-12-31")
+    _assert_envelope(out)
+    assert out["data"]["count"] == 0
+    assert out["data"]["totales"]["cuadra"] is True  # 0 == 0
+
+
+async def test_balance_omits_zero_accounts_by_default(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move.line", "read_group"):
+            return [
+                {"account_id": [11, "Caja"], "debit": 500.0, "credit": 0.0, "balance": 500.0, "__count": 1},
+                {"account_id": [33, "Sin mov"], "debit": 0.0, "credit": 0.0, "balance": 0.0, "__count": 0},
+            ]
+        return []
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_balance_sumas_saldos()
+    _assert_envelope(out)
+    assert out["data"]["count"] == 1  # the zero account is omitted
+    out2 = await odoo.odoo_balance_sumas_saldos(incluir_cero=True)
+    assert out2["data"]["count"] == 2
+
+
+async def test_balance_solo_posteados_filters_domain(_configured, monkeypatch):
+    holder = {}
+
+    def handler(model, method, args, kwargs):
+        if (model, method) == ("account.move.line", "read_group"):
+            return []
+        return []
+
+    fake = _install_fake(monkeypatch, handler=handler, obj_holder=holder)
+    await odoo.odoo_balance_sumas_saldos(solo_posteados=True)
+    # the domain passed to read_group must constrain parent_state to posted
+    rg_calls = [a for (m, meth, a, _k) in fake.calls if (m, meth) == ("account.move.line", "read_group")]
+    assert rg_calls
+    domain = rg_calls[0][0]
+    assert ("parent_state", "=", "posted") in domain
+
+
+async def test_balance_not_configured(monkeypatch):
+    monkeypatch.delenv(odoo.URL_ENV, raising=False)
+    out = await odoo.odoo_balance_sumas_saldos()
+    assert out["data"]["error"] == "odoo not configured"
+
+
+async def test_balance_unreachable_is_graceful(_configured, monkeypatch):
+    def handler(model, method, args, kwargs):
+        raise xmlrpc.client.Fault(1, "boom")
+
+    _install_fake(monkeypatch, handler=handler)
+    out = await odoo.odoo_balance_sumas_saldos()
+    _assert_envelope(out)
+    assert "error" in out["data"]
 
 
 # --------------------------------------------------------------------------- #
