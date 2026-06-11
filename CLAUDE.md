@@ -74,6 +74,10 @@ Plan/decisiones: `.claude/plans/`. Docs de dominio y operación: `plugin/docs/`.
 - **Confirmar antes de cambios destructivos.** Explicar antes de hacer.
 - **Commits atómicos** (un cambio lógico por commit).
 - Mantener **docs actualizados** cuando se cambia código/config.
+- **Versionado (SemVer manual)**: subir `version` en `plugin/.claude-plugin/plugin.json` en
+  CADA cambio que se instale en Cowork. `MAYOR.MENOR.PARCHE`: parche (0.3.0→0.3.1) para
+  fixes/ajustes; menor (0.3.x→0.4.0) para funcionalidad nueva; mayor (0.x→1.0.0) para "estable
+  en producción". Avisar a Diego el número en cada commit. Estado actual: **0.3.0**.
 
 ## Grounding anti-alucinación (INNEGOCIABLE — más crítico que en legal)
 
