@@ -2,6 +2,24 @@
 
 > Bitácora de avance por fases. Lo más reciente arriba.
 
+## 2026-06-11 — Convivencia con el gemelo MCP-Jurídico: renombrado + versionado
+
+**Objetivo:** evitar la colisión de nombres de skill con el gemelo MCP-Jurídico (ambos
+instalados a nivel user en Cowork).
+
+**Hecho:**
+- **Colisión resuelta:** ambos gemelos compartían `recepcion` y `perfil-societario`, lo que
+  hacía `/recepcion` ambiguo. Renombrado en este repo: **`recepcion → contabilidad`** (puerta
+  única ahora `/contabilidad`) y **`perfil-societario → perfil-societario-contable`**.
+  Referencias internas actualizadas (docs, playbook, consulta-cumplimiento). **Cero colisiones**
+  con el jurídico (verificado: 18 nombres del contable vs 29 del jurídico, intersección vacía).
+- **Versionado SemVer manual adoptado:** `0.1.0 → 0.3.0`. Regla documentada en `CLAUDE.md`:
+  subir `version` en `plugin/.claude-plugin/plugin.json` en cada cambio instalable en Cowork.
+
+**Puertas de entrada finales:** `/contabilidad` (este estudio) · `/juridico` (el gemelo legal).
+
+---
+
 ## 2026-06-06 — Connector Odoo + instalación operativa en Cowork (circuito completo)
 
 **Estado:** ✅ **COMPLETADO. El estudio está instalado y operativo en Cowork con los 8 connectors.**
