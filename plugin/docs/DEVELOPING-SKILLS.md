@@ -23,7 +23,7 @@
 
 - **`estudio-contable`** — puerta única / recepción-socio. **Liviano** (sin connectors propios,
   sin playbook de dominio pesado): clasifica la consulta y deriva al área correcta. Skills:
-  `recepcion` (triage→derivación) y `cold-start-interview` global (perfil de NU una sola vez).
+  `contabilidad` (triage→derivación) y `cold-start-interview` global (perfil de NU una sola vez).
 - **`impuestos-liquidaciones`** — IVA, Ganancias, IIBB, monotributo, retenciones/percepciones. (Área de referencia.)
 - **`sueldos`** — nómina, cargas sociales, F.931, ART.
 - **`registracion-estados-contables`** — asientos, libros, balance, RT FACPCE.

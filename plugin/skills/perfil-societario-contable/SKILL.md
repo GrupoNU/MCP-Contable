@@ -1,5 +1,5 @@
 ---
-name: perfil-societario
+name: perfil-societario-contable
 description: >
   Entrevista de configuración del perfil del área societaria y de cumplimiento. Detecta si el perfil ya
   está configurado; si no, entrevista al usuario (rol, entidad/CUIT, tipo societario, régimen,
@@ -26,7 +26,7 @@ ajusta el encabezado de work-product, los gates y qué obligaciones de cumplimie
    (`~/.claude/plugins/config/mcp-contable/perfil-global.md`), leerlo primero: puede tener ya
    el rol, la entidad y las jurisdicciones. Reusar eso y preguntar solo lo que falte.
 2. Leé el perfil del área en
-   `~/.claude/plugins/config/mcp-contable/perfil-societario.md` si existe; si no, usá como referencia
+   `~/.claude/plugins/config/mcp-contable/perfil-societario-contable.md` si existe; si no, usá como referencia
    de campos la plantilla del playbook del área (`skills/consulta-cumplimiento/playbook.md`).
 3. Buscá marcadores `[PLACEHOLDER` en la sección 1 (Perfil).
    - **Sin placeholders** → ya está configurado. Mostrá un resumen y preguntá si quiere **(a)**
@@ -79,7 +79,7 @@ aplicables), no fechas ni vigencias**.
    (`skills/consulta-cumplimiento/playbook.md`, sección 1) y escribí las respuestas **en prosa** (no
    YAML, no JSON).
 2. Escribí el resultado en
-   `~/.claude/plugins/config/mcp-contable/perfil-societario.md`. Creá las carpetas
+   `~/.claude/plugins/config/mcp-contable/perfil-societario-contable.md`. Creá las carpetas
    intermedias si no existen.
 3. **No modifiques** la plantilla del playbook ni las secciones 2-8 (grounding, gates, mapa de riesgo):
    esas son fijas. Solo completás la sección 1.

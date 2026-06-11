@@ -1,5 +1,5 @@
 ---
-name: recepcion
+name: contabilidad
 description: >
   Puerta única del estudio contable. Recibe una consulta contable/impositiva en lenguaje natural, la
   clasifica por área (impuestos, sueldos, registración, societario) y deriva al skill de entrada del

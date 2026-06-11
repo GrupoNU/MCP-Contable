@@ -18,11 +18,11 @@
 ## 0. Cómo se usa este playbook
 
 - El **perfil del usuario/entidad** (rol, régimen, jurisdicción, tipo societario, carpetas locales)
-  lo completa el skill `perfil-societario`, que toma esta sección 1 como referencia de campos.
+  lo completa el skill `perfil-societario-contable`, que toma esta sección 1 como referencia de campos.
 - Mientras el perfil persistido no exista o tenga campos sin completar, Claude debe **ofrecer correr
-  `/mcp-contable:perfil-societario`** antes de producir trabajo sustantivo.
+  `/mcp-contable:perfil-societario-contable`** antes de producir trabajo sustantivo.
 - El perfil persistido vive en:
-  `~/.claude/plugins/config/mcp-contable/perfil-societario.md`
+  `~/.claude/plugins/config/mcp-contable/perfil-societario-contable.md`
   (este `playbook.md` es la **plantilla**; el de config es la copia personalizada).
 - Si existe un perfil global del estudio (escrito por `/mcp-contable:cold-start-interview`),
   leerlo primero y completar solo lo específico del área.

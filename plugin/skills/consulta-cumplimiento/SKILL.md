@@ -23,7 +23,7 @@ contador matriculado.
 ## Procedimiento
 
 1. **Verificar perfil:** si el playbook tiene `[PLACEHOLDER]` en la sección 1, ofrecé correr
-   `/mcp-contable:perfil-societario` antes de producir trabajo sustantivo. Si no, usá el
+   `/mcp-contable:perfil-societario-contable` antes de producir trabajo sustantivo. Si no, usá el
    rol/tipo societario/jurisdicción registral/régimen/jurisdicciones del perfil.
 2. **Encabezado de work-product** según el rol (playbook §2). Si el rol es `[PLACEHOLDER]`, usá el
    encabezado de no-contador (conservador).

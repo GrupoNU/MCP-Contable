@@ -164,7 +164,7 @@ la doc oficial de Claude Code):
 - Molde aprobado: playbook **sin números hardcodeados** (todo monto/alícuota/fecha se verifica por
   connector o `[verify]`), mapa de riesgo por norma, gates de consecuencias, encabezado conservador.
 - **Mismos 4 skills por área** (consistencia): cold-start-interview + consulta-<area> +
-  buscar-normativa-<area> + analizar-norma-<area>. La puerta `estudio-contable` tiene 2 (recepcion + cold-start global).
+  buscar-normativa-<area> + analizar-norma-<area>. La puerta `estudio-contable` tiene 2 (contabilidad + cold-start global).
 
 ### Construcción
 - Plugin de referencia `impuestos-liquidaciones` hecho primero y validado → luego las otras 3 áreas
